@@ -20,9 +20,11 @@ function Menu({ label, trigger, children, className = "" }: { label: string; tri
 	useEffect(() => { if (!open) return; const outside = (event: PointerEvent) => { if (event.target instanceof Node && !container.current?.contains(event.target)) setOpen(false); }; document.addEventListener("pointerdown", outside); return () => document.removeEventListener("pointerdown", outside); }, [open]);
 	useEffect(() => {
 		if (!open) return;
+		let frame: number | undefined;
+		let disposed = false;
 		const position = () => {
 			const element = panel.current;
-			if (!element) return;
+			if (disposed || !element) return;
 			// Restore CSS placement before every measure; transforms retain the old overflow box.
 			element.style.left = "";
 			element.style.right = "";
@@ -35,9 +37,23 @@ function Menu({ label, trigger, children, className = "" }: { label: string; tri
 				element.style.right = "auto";
 			}
 		};
+		const schedulePosition = () => {
+			if (disposed || frame !== undefined) return;
+			frame = window.requestAnimationFrame(() => { frame = undefined; position(); });
+		};
 		position();
-		window.addEventListener("resize", position);
-		return () => window.removeEventListener("resize", position);
+		// Native session/org data can resize the anchor after its menu is already open.
+		const observer = typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(schedulePosition);
+		if (container.current) observer?.observe(container.current);
+		if (panel.current) observer?.observe(panel.current);
+		observer?.observe(document.documentElement);
+		window.addEventListener("resize", schedulePosition);
+		return () => {
+			disposed = true;
+			observer?.disconnect();
+			window.removeEventListener("resize", schedulePosition);
+			if (frame !== undefined) window.cancelAnimationFrame(frame);
+		};
 	}, [open]);
 	const close = () => { setOpen(false); button.current?.focus(); };
 	return <div ref={container} className={`allauth-header-menu ${className}`} onKeyDown={event => {
