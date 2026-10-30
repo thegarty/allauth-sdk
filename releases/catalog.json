@@ -4,7 +4,7 @@
   "reconstructedHistory": true,
   "importedAt": "2026-10-30T01:38:34.868686+00:00",
   "sourceArchiveCatalog": "https://allauth.co/sdk/integrity.json",
-  "latestVersion": "1.1.1",
+  "latestVersion": "1.2.0",
   "releases": [
     {
       "version": "1.1.0",
@@ -182,6 +182,126 @@
           "path": "styles.css",
           "sha256": "f913d2d36d2d58b83a48284f8dea0a3637bc9bada5f8ab45d64815b3c688dbcf",
           "bytes": 12577
+        },
+        {
+          "path": "ui.tsx",
+          "sha256": "d97dcbf3cd4813d31526e6ae3ff6d51bcc5d7ca542441005890d9e55aa9a83a8",
+          "bytes": 2870
+        }
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "title": "AllAuth React SDK 1.2.0: native account and organisation management modals",
+      "summary": "Adds opt-in avatar menus, a compact organisation switcher and shared native management dialogs.",
+      "notes": [
+        "Adds avatar UserButton and compact OrganizationSwitcher variants with opt-in modal management while retaining existing page/card defaults.",
+        "Introduces controlled UserProfileModal and OrganizationProfileModal components and embedded profile/member views.",
+        "Adds organisation selection and creation callbacks, awaiting application setup and retaining visible retry states on callback failure."
+      ],
+      "publishedAt": null,
+      "dateConfidence": "unknown",
+      "compatibility": "historical",
+      "upgradeUrl": "https://allauth.co/sdk/quickstart",
+      "changelogUrl": "https://allauth.co/releases/sdk-1-2-0",
+      "downloadUrl": "https://allauth.co/sdk/allauth-react-1.2.0.tgz",
+      "sha256": "17a6eeea44d62dab4f044744ee612f24fc39cd9434b36215d97fcfdf88753919",
+      "sourceUrl": "https://github.com/thegarty/allauth-sdk/tree/v1.2.0/packages/react",
+      "provenance": [
+        {
+          "kind": "archive-diff",
+          "details": "Reconstructed from the immutable 1.1.1 and 1.2.0 archives. The original publication date was not retained; archive file timestamps are not treated as release dates.",
+          "files": [
+            "README.md",
+            "header.tsx",
+            "dialog.tsx",
+            "organization-profile.tsx",
+            "react.tsx"
+          ]
+        }
+      ],
+      "filename": "allauth-react-1.2.0.tgz",
+      "archivePath": "releases/archives/allauth-react-1.2.0.tgz",
+      "checksumPath": "releases/checksums/allauth-react-1.2.0.tgz.sha256",
+      "tag": "v1.2.0",
+      "githubReleaseUrl": "https://github.com/thegarty/allauth-sdk/releases/tag/v1.2.0",
+      "packagePrivate": true,
+      "sdkLicense": null,
+      "sourceFiles": [
+        {
+          "path": "BETTER_AUTH_UI.md",
+          "sha256": "a9d8280dbb5e6599f937240bc99b5147450aa1237da68e09efce10e95c15c5ea",
+          "bytes": 4823
+        },
+        {
+          "path": "README.md",
+          "sha256": "afb7dbd250ae74293ea45d9aeed9f6298207fe4dd7b789e61429b042e0886679",
+          "bytes": 1530
+        },
+        {
+          "path": "allauth-wordmark.tsx",
+          "sha256": "33a358d83663d9fe9cd5da7789302b0b5005e633d7cdbacad07a595b8068a3cf",
+          "bytes": 2445
+        },
+        {
+          "path": "branding.ts",
+          "sha256": "6587754281f940367e13b3a4760ad553a58f1610c925f4a2ee9789bcd6e7f5b7",
+          "bytes": 5079
+        },
+        {
+          "path": "client.ts",
+          "sha256": "f9a3aeb0c437c01fc795332a4b1e8a4def84dee286a152011f4c5fd9fcd64b65",
+          "bytes": 1564
+        },
+        {
+          "path": "dialog.tsx",
+          "sha256": "742f2f5244b534fb2d2329487262b714abcc2a937f4800518a8fe95da8c2a608",
+          "bytes": 3522
+        },
+        {
+          "path": "google-icon.ts",
+          "sha256": "da34e77b4cfecb5fbeaabb8dbb714ca902d2ea48ff6e12df322d086dbda7e946",
+          "bytes": 45114
+        },
+        {
+          "path": "header.css",
+          "sha256": "ac25b8bf25545c5d2877fdf08eca4eac21e83e125291528a53542f90a4d620a6",
+          "bytes": 8355
+        },
+        {
+          "path": "header.tsx",
+          "sha256": "9fdb67188a066555ca175da209c92ead88fc2dee22bb13a84e0deb1d4e0a4214",
+          "bytes": 12532
+        },
+        {
+          "path": "helpers.ts",
+          "sha256": "6ca4e6c94d4553491c7d23ff426483ef8342cf1cc22dcfac9b6d492760393b97",
+          "bytes": 2705
+        },
+        {
+          "path": "next.ts",
+          "sha256": "2bac3bb5d70213fae13c6d85607dcfff93c80ede9a980293343ce850cd157929",
+          "bytes": 8374
+        },
+        {
+          "path": "organization-profile.tsx",
+          "sha256": "e111c43543130598fb4bc3f87f75a8a1ded70112b2e6e851b880baa26d16d4a4",
+          "bytes": 22040
+        },
+        {
+          "path": "package.json",
+          "sha256": "42832ce837c7b86346e1b5f756423f1a2f5a198594debc61348286065733460a",
+          "bytes": 1185
+        },
+        {
+          "path": "react.tsx",
+          "sha256": "fb9b1d21714db40b4d67e66c1eac5b17e32c2d746a238f31deadfa8161581e2b",
+          "bytes": 56838
+        },
+        {
+          "path": "styles.css",
+          "sha256": "c9ed62be7195e690dc7ceb5f5f5f68e530d7d9e42f4f5cd3eb2f2a9202caa3e8",
+          "bytes": 12601
         },
         {
           "path": "ui.tsx",

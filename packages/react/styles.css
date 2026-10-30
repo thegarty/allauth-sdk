@@ -1,3 +1,4 @@
+@import "./header.css";
 .allauth {
   --allauth-background: #ffffff;
   --allauth-foreground: #17212d;

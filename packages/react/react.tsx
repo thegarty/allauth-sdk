@@ -17,6 +17,11 @@ import { brandForeground, brandLinkColor, publicSDKConfiguration } from "./brand
 import type { AllAuthPublicBranding } from "./branding";
 export type { AllAuthPublicBranding } from "./branding";
 import { createAllAuthClient } from "./client";
+import { Avatar, AvatarUserButton, CompactOrganizationSwitcher, safeAvatar } from "./header";
+import type { OrganizationHeaderProps } from "./header";
+import { Dialog } from "./dialog";
+export { OrganizationProfile, OrganizationProfileModal } from "./organization-profile";
+export type { HeaderOrganization, OrganizationHeaderProps } from "./header";
 import type { AllAuthClient } from "./client";
 import {
 	appCallback,
@@ -625,15 +630,20 @@ export function UserButton({
 	signInUrl,
 	profileUrl,
 	afterSignOutUrl = "/",
+	variant = "default",
+	managementMode = "page",
 }: Appearance & {
 	signInUrl?: string;
 	profileUrl?: string;
 	afterSignOutUrl?: string;
+	variant?: "default" | "avatar";
+	managementMode?: "page" | "modal";
 }) {
 	const context = useAllAuth();
 	const session = context.client.useSession();
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
+	const [profileOpen, setProfileOpen] = useState(false);
 	async function signOut() {
 		setBusy(true);
 		setError("");
@@ -646,6 +656,7 @@ export function UserButton({
 			setBusy(false);
 		}
 	}
+	if (variant === "avatar" && session.data) return <AvatarUserButton className={className} style={style} managementMode={managementMode} profileUrl={profileUrl} afterSignOutUrl={afterSignOutUrl}/>;
 	return (
 		<div className={`allauth ${className}`} style={style}>
 			{session.isPending ? (
@@ -664,9 +675,7 @@ export function UserButton({
 					<summary>{session.data.user.name || session.data.user.email}</summary>
 					<div className="allauth-menu-content">
 						<p className="allauth-muted">{session.data.user.email}</p>
-						<a href={appPath(profileUrl ?? context.profileUrl)}>
-							Manage account
-						</a>
+						{managementMode === "modal" ? <button type="button" className="allauth-secondary" onClick={() => setProfileOpen(true)}>Manage account</button> : <a href={appPath(profileUrl ?? context.profileUrl)}>Manage account</a>}
 						<button
 							type="button"
 							className="allauth-secondary"
@@ -679,6 +688,7 @@ export function UserButton({
 					</div>
 				</details>
 			)}
+			<UserProfileModal open={profileOpen} onClose={() => setProfileOpen(false)}/>
 		</div>
 	);
 }
@@ -835,198 +845,55 @@ function Sessions({ signInUrl }: { signInUrl: string }) {
 	);
 }
 
-function ProfileForms({
-	user,
-}: {
-	user: { name: string; email: string; emailVerified: boolean };
-}) {
-	const { client, afterSignInUrl } = useAllAuth();
-	const id = useId();
-	const [name, setName] = useState(user.name);
-	const [currentPassword, setCurrentPassword] = useState("");
-	const [newPassword, setNewPassword] = useState("");
-	const [confirmPassword, setConfirmPassword] = useState("");
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState("");
-	const [message, setMessage] = useState("");
-	async function run(
-		action: () => Promise<{ error: unknown }>,
-		message: string,
-	) {
-		setBusy(true);
-		setError("");
-		setMessage("");
-		try {
-			const response = await action();
-			if (response.error) throw response.error;
-			setMessage(message);
-			setCurrentPassword("");
-			setNewPassword("");
-			setConfirmPassword("");
-		} catch (error) {
-			setError(authError(error));
-		} finally {
-			setBusy(false);
-		}
-	}
-	return (
-		<>
-			<Notice message={error} error />
-			<Notice message={message} />
-			<form
-				className="allauth-stack"
-				onSubmit={(event) => {
-					event.preventDefault();
-					void run(
-						() => client.updateUser({ name: name.trim() }),
-						"Profile updated.",
-					);
-				}}
-			>
-				<h3>Profile</h3>
-				<Field label="Name" id={`${id}-name`}>
-					<input
-						id={`${id}-name`}
-						required
-						maxLength={200}
-						autoComplete="name"
-						value={name}
-						onChange={(event) => setName(event.target.value)}
-						disabled={busy}
-					/>
-				</Field>
-				<p>
-					{user.email}{" "}
-					<span className="allauth-muted">
-						{user.emailVerified ? "Verified" : "Unverified"}
-					</span>
-				</p>
-				{!user.emailVerified && (
-					<button
-						type="button"
-						className="allauth-secondary"
-						disabled={busy}
-						onClick={() =>
-							void run(
-								() =>
-									client.sendVerificationEmail({
-										email: user.email,
-										callbackURL: appCallback(
-											afterSignInUrl,
-											window.location.origin,
-										),
-									}),
-								"Verification email requested. Check your inbox.",
-							)
-						}
-					>
-						Verify email address
-					</button>
-				)}
-				<button type="submit" disabled={busy}>
-					{busy ? "Saving…" : "Save profile"}
-				</button>
-			</form>
-			<form
-				className="allauth-stack"
-				onSubmit={(event) => {
-					event.preventDefault();
-					if (newPassword !== confirmPassword) {
-						setError("New passwords must match.");
-						return;
-					}
-					void run(
-						() =>
-							client.changePassword({
-								currentPassword,
-								newPassword,
-								revokeOtherSessions: true,
-							}),
-						"Password changed. Other sessions have been ended.",
-					);
-				}}
-			>
-				<h3>Change password</h3>
-				<Field label="Current password" id={`${id}-current`}>
-					<input
-						id={`${id}-current`}
-						type="password"
-						required
-						autoComplete="current-password"
-						value={currentPassword}
-						onChange={(event) => setCurrentPassword(event.target.value)}
-						disabled={busy}
-					/>
-				</Field>
-				<Field label="New password" id={`${id}-new`}>
-					<input
-						id={`${id}-new`}
-						type="password"
-						required
-						minLength={12}
-						maxLength={128}
-						autoComplete="new-password"
-						value={newPassword}
-						onChange={(event) => setNewPassword(event.target.value)}
-						disabled={busy}
-					/>
-				</Field>
-				<Field label="Confirm new password" id={`${id}-confirm`}>
-					<input
-						id={`${id}-confirm`}
-						type="password"
-						required
-						minLength={12}
-						maxLength={128}
-						autoComplete="new-password"
-						value={confirmPassword}
-						onChange={(event) => setConfirmPassword(event.target.value)}
-						disabled={busy}
-					/>
-				</Field>
-				<button type="submit" disabled={busy}>
-					{busy ? "Saving…" : "Change password"}
-				</button>
-			</form>
-		</>
-	);
+function ProfileForms({ user, section = "all", onUpdated }: { user: { name: string; email: string; emailVerified: boolean; image?: string | null }; section?: "all" | "profile" | "security"; onUpdated?: () => void | Promise<void> }) {
+ const { client, afterSignInUrl } = useAllAuth(); const id = useId();
+ const [name, setName] = useState(user.name); const [image, setImage] = useState(user.image || ""); const [editing, setEditing] = useState(section === "all");
+ const [currentPassword, setCurrentPassword] = useState(""); const [newPassword, setNewPassword] = useState(""); const [confirmPassword, setConfirmPassword] = useState("");
+ const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [message, setMessage] = useState("");
+ async function run(action: () => Promise<{ error: unknown }>, success: string, profile = false) {
+  setBusy(true); setError(""); setMessage("");
+  try { const response = await action(); if (response.error) throw response.error; setMessage(success); setCurrentPassword(""); setNewPassword(""); setConfirmPassword(""); if (profile) { await client.getSession({ query: { disableCookieCache: true } }); setEditing(false); await onUpdated?.(); } }
+  catch (cause) { setError(authError(cause)); } finally { setBusy(false); }
+ }
+ return <><Notice message={error} error/><Notice message={message}/>{section !== "security" && <>
+  {section === "profile" && <div className="allauth-profile-summary"><div className="allauth-profile-row"><span>Profile</span><div className="allauth-profile-identity"><Avatar name={user.name || user.email} image={user.image}/><strong>{user.name || user.email}</strong></div><button className="allauth-text-button" type="button" onClick={() => setEditing(value => !value)}>{editing ? "Cancel update" : "Update profile"}</button></div><div className="allauth-profile-row"><span>Email address</span><div>{user.email} <span className="allauth-badge">{user.emailVerified ? "Verified" : "Unverified"}</span></div></div></div>}
+  {editing && <form className="allauth-stack allauth-profile-edit" onSubmit={event => { event.preventDefault(); if (image.trim() && !safeAvatar(image.trim())) { setError("Use a public HTTPS avatar URL, or leave it blank."); return; } void run(() => client.updateUser({ name: name.trim(), image: image.trim() || null }), "Profile updated.", true); }}>
+   <h3>Update profile</h3><Field label="Name" id={`${id}-name`}><input id={`${id}-name`} required maxLength={200} autoComplete="name" value={name} onChange={event => setName(event.target.value)} disabled={busy}/></Field>
+   <Field label="Avatar image URL (optional)" id={`${id}-image`}><input id={`${id}-image`} type="url" maxLength={2048} placeholder="https://example.com/photo.jpg" value={image} onChange={event => setImage(event.target.value)} disabled={busy}/></Field>
+   {section === "all" && <p>{user.email} <span className="allauth-badge">{user.emailVerified ? "Verified" : "Unverified"}</span></p>}
+   <button type="submit" disabled={busy}>{busy ? "Saving…" : "Save profile"}</button>
+  </form>}
+  {!user.emailVerified && <button type="button" className="allauth-secondary" disabled={busy} onClick={() => void run(() => client.sendVerificationEmail({ email: user.email, callbackURL: appCallback(afterSignInUrl, window.location.origin) }), "Verification email requested. Check your inbox.")}>Verify email address</button>}
+ </>}{section !== "profile" && <form className="allauth-stack allauth-profile-section" onSubmit={event => { event.preventDefault(); if (newPassword !== confirmPassword) { setError("New passwords must match."); return; } void run(() => client.changePassword({ currentPassword, newPassword, revokeOtherSessions: true }), "Password changed. Other sessions have been ended."); }}>
+  <h3>Change password</h3><Field label="Current password" id={`${id}-current`}><input id={`${id}-current`} type="password" required autoComplete="current-password" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} disabled={busy}/></Field>
+  <Field label="New password" id={`${id}-new`}><input id={`${id}-new`} type="password" required minLength={12} maxLength={128} autoComplete="new-password" value={newPassword} onChange={event => setNewPassword(event.target.value)} disabled={busy}/></Field>
+  <Field label="Confirm new password" id={`${id}-confirm`}><input id={`${id}-confirm`} type="password" required minLength={12} maxLength={128} autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} disabled={busy}/></Field>
+  <button type="submit" disabled={busy}>{busy ? "Saving…" : "Change password"}</button>
+ </form>}</>;
 }
 
-/** Profile, verification, password changes, and a credential-free device list. */
-export function UserProfile({
-	className = "",
-	style,
-	signInUrl,
-}: Appearance & { signInUrl?: string }) {
-	const context = useAllAuth();
-	const session = context.client.useSession();
-	const signInPath = appPath(signInUrl ?? context.signInUrl);
-	return (
-		<section
-			className={`allauth allauth-card ${className}`}
-			style={style}
-			aria-label="Account profile"
-		>
-			<div className="allauth-stack">
-				<h2>Your account</h2>
-				{session.isPending ? (
-					<Loading />
-				) : session.error ? (
-					<Notice message={authError(session.error)} error />
-				) : !session.data ? (
-					<p>
-						<a href={signInPath}>Sign in</a> to manage your account.
-					</p>
-				) : (
-					<>
-						<ProfileForms key={session.data.user.id} user={session.data.user} />
-						<SecuritySettings user={session.data.user} />
-						<Sessions signInUrl={signInPath} />
-					</>
-				)}
-			</div>
-		</section>
-	);
+function ConnectedAccounts() {
+ const { client } = useAllAuth(); const [accounts, setAccounts] = useState<{ id: string; providerId: string }[]>([]); const [loading, setLoading] = useState(true); const [error, setError] = useState("");
+ useEffect(() => { let current = true; void client.listAccounts().then(response => { if (!current) return; if (response.error) setError(authError(response.error)); else setAccounts((response.data || []).map(account => ({ id: account.id, providerId: account.providerId }))); }).catch(cause => { if (current) setError(authError(cause)); }).finally(() => { if (current) setLoading(false); }); return () => { current = false; }; }, [client]);
+ return <section className="allauth-profile-section"><h3>Connected accounts</h3>{loading ? <Loading>Loading connected accounts…</Loading> : error ? <Notice message={error} error/> : accounts.length ? <ul className="allauth-list">{accounts.map(account => <li key={account.id}><span>{account.providerId === "allauth" ? "AllAuth" : account.providerId === "credential" ? "Password" : account.providerId.charAt(0).toUpperCase() + account.providerId.slice(1)}</span></li>)}</ul> : <p className="allauth-muted">No connected accounts.</p>}</section>;
+}
+
+/** Profile, verification and native security controls; defaults retain the full account page. */
+export function UserProfile({ className = "", style, signInUrl, section = "all", embedded = false, onUpdated }: Appearance & { signInUrl?: string; section?: "all" | "profile" | "security"; embedded?: boolean; onUpdated?: () => void | Promise<void> }) {
+ const context = useAllAuth(); const session = context.client.useSession(); const signInPath = appPath(signInUrl ?? context.signInUrl);
+ return <section className={`allauth ${embedded ? "allauth-profile-embedded" : "allauth-card"} ${className}`} style={style} aria-label="Account profile"><div className="allauth-stack"><h2>{section === "profile" ? "Profile details" : section === "security" ? "Security" : "Your account"}</h2>
+  {session.isPending ? <Loading/> : session.error ? <Notice message={authError(session.error)} error/> : !session.data ? <p><a href={signInPath}>Sign in</a> to manage your account.</p> : <>
+   <ProfileForms key={`${session.data.user.id}-${section}`} user={session.data.user} section={section} onUpdated={async () => { await session.refetch({ query: { disableCookieCache: true } }); await onUpdated?.(); }}/>
+   {section !== "security" && <ConnectedAccounts/>}
+   {section !== "profile" && <><SecuritySettings user={session.data.user}/><Sessions signInUrl={signInPath}/></>}
+  </>}
+ </div></section>;
+}
+
+/** Controlled native account modal, suitable for any React host application. */
+export function UserProfileModal({ open, onClose, initialSection = "profile", onUpdated }: { open: boolean; onClose: () => void; initialSection?: "profile" | "security"; onUpdated?: () => void | Promise<void> }) {
+ const [section, setSection] = useState(initialSection); useEffect(() => { if (open) setSection(initialSection); }, [open, initialSection]);
+ return <Dialog open={open} onClose={onClose} title="Account" sidebar={<><p className="allauth-muted">Manage your account.</p><nav aria-label="Account sections"><button type="button" aria-current={section === "profile" ? "page" : undefined} onClick={() => setSection("profile")}>Profile</button><button type="button" aria-current={section === "security" ? "page" : undefined} onClick={() => setSection("security")}>Security</button></nav></>}><UserProfile section={section} embedded onUpdated={onUpdated}/></Dialog>;
 }
 
 type Invitation = {
@@ -1119,16 +986,15 @@ function InviteMember({
 }
 
 function OrganizationControls({
-	hideCreate = false,
-}: {
-	hideCreate?: boolean;
-}) {
+	hideCreate = false, onSelect, onCreate, onOrganizationChange,
+}: OrganizationHeaderProps) {
 	const { client } = useAllAuth();
 	const id = useId();
 	const organizations = client.useListOrganizations();
 	const active = client.useActiveOrganization();
 	const [name, setName] = useState("");
 	const [slug, setSlug] = useState("");
+ const [createdPending, setCreatedPending] = useState<{id:string;name:string;logo?:string|null}|null>(null);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
 	const [message, setMessage] = useState("");
@@ -1186,7 +1052,7 @@ function OrganizationControls({
 						onChange={(event) => {
 							const organizationId = event.target.value || null;
 							void run(
-								() => client.organization.setActive({ organizationId }),
+								async () => { const response = await client.organization.setActive({ organizationId }); const organization = organizations.data?.find(entry => entry.id === organizationId); if (!response.error && organization) { await onSelect?.(organization); await onOrganizationChange?.(organization, "select"); } return response; },
 								"Organization selected.",
 							);
 						}}
@@ -1216,14 +1082,15 @@ function OrganizationControls({
 						onSubmit={(event) => {
 							event.preventDefault();
 							void run(async () => {
-								const response = await client.organization.create({
-									name: name.trim(),
-									slug: slug.trim(),
-								});
-								if (!response.error) {
-									setName("");
-									setSlug("");
-								}
+								const response = createdPending ? { data: createdPending, error: null } : await client.organization.create({ name: name.trim(), slug: slug.trim() });
+								if (!response.error && response.data) {
+                                    setCreatedPending(response.data);
+                                    const selected = await client.organization.setActive({ organizationId: response.data.id });
+                                    if (selected.error) throw selected.error;
+                                    await (onCreate ?? onSelect)?.(response.data);
+                                    await onOrganizationChange?.(response.data, "create");
+                                    setCreatedPending(null); setName(""); setSlug("");
+                                }
 								return response;
 							}, "Organization created.");
 						}}
@@ -1250,7 +1117,7 @@ function OrganizationControls({
 							/>
 						</Field>
 						<button type="submit" disabled={busy}>
-							{busy ? "Creating…" : "Create organization"}
+							{busy ? "Setting up…" : createdPending ? "Retry setup" : "Create organization"}
 						</button>
 					</form>
 				</details>
@@ -1335,9 +1202,15 @@ export function OrganizationSwitcher({
 	style,
 	hideCreate = false,
 	signInUrl,
-}: Appearance & { hideCreate?: boolean; signInUrl?: string }) {
+	variant = "default",
+	managementMode = "page",
+	onSelect,
+	onCreate,
+	onOrganizationChange,
+}: Appearance & OrganizationHeaderProps & { signInUrl?: string; variant?: "default" | "compact" }) {
 	const context = useAllAuth();
 	const session = context.client.useSession();
+	if (variant === "compact") return <CompactOrganizationSwitcher className={className} style={style} hideCreate={hideCreate} managementMode={managementMode} onSelect={onSelect} onCreate={onCreate} onOrganizationChange={onOrganizationChange}/>;
 	return (
 		<section
 			className={`allauth allauth-card ${className}`}
@@ -1364,7 +1237,7 @@ export function OrganizationSwitcher({
 				) : (
 					<OrganizationControls
 						key={session.data.user.id}
-						hideCreate={hideCreate}
+						hideCreate={hideCreate} onSelect={onSelect} onCreate={onCreate} onOrganizationChange={onOrganizationChange}
 					/>
 				)}
 			</div>
