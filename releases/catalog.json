@@ -4,7 +4,7 @@
   "reconstructedHistory": true,
   "importedAt": "2026-10-30T01:38:34.868686+00:00",
   "sourceArchiveCatalog": "https://allauth.co/sdk/integrity.json",
-  "latestVersion": "1.1.0",
+  "latestVersion": "1.1.1",
   "releases": [
     {
       "version": "1.1.0",
@@ -89,6 +89,99 @@
           "path": "styles.css",
           "sha256": "d6068d478ac63637c6d2b80ba37c14dfb9c63b0676530ced00659e4cb47a5f18",
           "bytes": 12320
+        },
+        {
+          "path": "ui.tsx",
+          "sha256": "d97dcbf3cd4813d31526e6ae3ff6d51bcc5d7ca542441005890d9e55aa9a83a8",
+          "bytes": 2870
+        }
+      ]
+    },
+    {
+      "version": "1.1.1",
+      "title": "AllAuth React SDK 1.1.1: AllAuth attribution wordmark",
+      "summary": "Adds the AllAuth wordmark to the native authentication footer attribution.",
+      "notes": [
+        "Packages a reusable wordmark component and updates the secured-by footer to use the branded mark with an accessible label.",
+        "Updates the corresponding attribution styling and embedding guide without changing the authentication client or proxy."
+      ],
+      "publishedAt": null,
+      "dateConfidence": "unknown",
+      "compatibility": "historical",
+      "upgradeUrl": "https://allauth.co/sdk/quickstart",
+      "changelogUrl": "https://allauth.co/releases/sdk-1-1-1",
+      "downloadUrl": "https://allauth.co/sdk/allauth-react-1.1.1.tgz",
+      "sha256": "cef12ffa90749174354d0ecc32c736a0e1728d86355506070ebe140bc1ec7973",
+      "sourceUrl": "https://github.com/thegarty/allauth-sdk/tree/v1.1.1/packages/react",
+      "provenance": [
+        {
+          "kind": "archive-diff",
+          "details": "Reconstructed from the immutable 1.1.0 and 1.1.1 archives. The original publication date was not retained; archive file timestamps are not treated as release dates.",
+          "files": [
+            "allauth-wordmark.tsx",
+            "react.tsx",
+            "styles.css",
+            "BETTER_AUTH_UI.md"
+          ]
+        }
+      ],
+      "filename": "allauth-react-1.1.1.tgz",
+      "archivePath": "releases/archives/allauth-react-1.1.1.tgz",
+      "checksumPath": "releases/checksums/allauth-react-1.1.1.tgz.sha256",
+      "tag": "v1.1.1",
+      "githubReleaseUrl": "https://github.com/thegarty/allauth-sdk/releases/tag/v1.1.1",
+      "packagePrivate": true,
+      "sdkLicense": null,
+      "sourceFiles": [
+        {
+          "path": "BETTER_AUTH_UI.md",
+          "sha256": "f6b280f262577c6b90b9c3caa1bed7a81c04e0ad6d4ae81b45457cdde6a86276",
+          "bytes": 4823
+        },
+        {
+          "path": "allauth-wordmark.tsx",
+          "sha256": "33a358d83663d9fe9cd5da7789302b0b5005e633d7cdbacad07a595b8068a3cf",
+          "bytes": 2445
+        },
+        {
+          "path": "branding.ts",
+          "sha256": "6587754281f940367e13b3a4760ad553a58f1610c925f4a2ee9789bcd6e7f5b7",
+          "bytes": 5079
+        },
+        {
+          "path": "client.ts",
+          "sha256": "f9a3aeb0c437c01fc795332a4b1e8a4def84dee286a152011f4c5fd9fcd64b65",
+          "bytes": 1564
+        },
+        {
+          "path": "google-icon.ts",
+          "sha256": "da34e77b4cfecb5fbeaabb8dbb714ca902d2ea48ff6e12df322d086dbda7e946",
+          "bytes": 45114
+        },
+        {
+          "path": "helpers.ts",
+          "sha256": "6ca4e6c94d4553491c7d23ff426483ef8342cf1cc22dcfac9b6d492760393b97",
+          "bytes": 2705
+        },
+        {
+          "path": "next.ts",
+          "sha256": "2bac3bb5d70213fae13c6d85607dcfff93c80ede9a980293343ce850cd157929",
+          "bytes": 8374
+        },
+        {
+          "path": "package.json",
+          "sha256": "8000aa121d9d5e274d576ace3e7bb2ca6596e409b577485de1047769c99e6fb7",
+          "bytes": 1060
+        },
+        {
+          "path": "react.tsx",
+          "sha256": "8910e65ab43afba2b2f0ee47ad94c346e5fdb693e019449d14befdc3553ded1d",
+          "bytes": 51047
+        },
+        {
+          "path": "styles.css",
+          "sha256": "f913d2d36d2d58b83a48284f8dea0a3637bc9bada5f8ab45d64815b3c688dbcf",
+          "bytes": 12577
         },
         {
           "path": "ui.tsx",

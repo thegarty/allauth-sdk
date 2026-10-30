@@ -1,6 +1,6 @@
 {
   "name": "@allauth/react",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "type": "module",
   "exports": {
@@ -19,7 +19,8 @@
     "ui.tsx",
     "BETTER_AUTH_UI.md",
     "google-icon.ts",
-    "branding.ts"
+    "branding.ts",
+    "allauth-wordmark.tsx"
   ],
   "sideEffects": [
     "./styles.css"

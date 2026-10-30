@@ -12,6 +12,7 @@ import {
 import type { CSSProperties, FormEvent, ReactNode } from "react";
 import { ArrowRight, ChevronLeft, Eye, EyeOff } from "lucide-react";
 import { googleIcon } from "./google-icon";
+import { AllAuthWordmark } from "./allauth-wordmark";
 import { brandForeground, brandLinkColor, publicSDKConfiguration } from "./branding";
 import type { AllAuthPublicBranding } from "./branding";
 export type { AllAuthPublicBranding } from "./branding";
@@ -359,7 +360,7 @@ function AuthFooter({ children }: { children?: ReactNode }) {
 		{children}
 		{(supportEmail || powered) && <div className="allauth-brand-footer">
 			{supportEmail && <a href={`mailto:${encodeURIComponent(supportEmail)}`}>Contact support</a>}
-			{powered && <a href="https://allauth.co" target="_blank" rel="noopener noreferrer">Secured by AllAuth</a>}
+			{powered && <a className="allauth-attribution" href="https://allauth.co" target="_blank" rel="noopener noreferrer" aria-label="Secured by AllAuth"><span>Secured by</span><AllAuthWordmark aria-hidden="true" /></a>}
 		</div>}
 	</footer>;
 }
