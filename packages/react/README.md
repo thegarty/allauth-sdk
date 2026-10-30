@@ -1,11 +1,11 @@
-# AllAuth React SDK 1.2.0
+# AllAuth React SDK 1.2.1
 
 A portable React SDK backed by the app's same-origin AllAuth proxy. Install the
 versioned tarball plus its declared peers, and import `@allauth/react/styles.css`.
 React and React DOM must have compatible versions. No Next.js dependency is
 required for the React components.
 
-SDK 1.2.0 adds opt-in `UserButton variant="avatar" managementMode="modal"` and
+SDK 1.2.1 adds opt-in `UserButton variant="avatar" managementMode="modal"` and
 `OrganizationSwitcher variant="compact" managementMode="modal"`. Their existing
 page/card defaults remain available.
 

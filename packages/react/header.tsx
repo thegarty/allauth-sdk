@@ -18,7 +18,27 @@ export function Avatar({ name, image, square = false }: { name: string; image?: 
 function Menu({ label, trigger, children, className = "" }: { label: string; trigger: ReactNode; children: (close: () => void) => ReactNode; className?: string }) {
 	const [open, setOpen] = useState(false); const container = useRef<HTMLDivElement>(null); const button = useRef<HTMLButtonElement>(null); const panel = useRef<HTMLDivElement>(null); const id = useId();
 	useEffect(() => { if (!open) return; const outside = (event: PointerEvent) => { if (event.target instanceof Node && !container.current?.contains(event.target)) setOpen(false); }; document.addEventListener("pointerdown", outside); return () => document.removeEventListener("pointerdown", outside); }, [open]);
-	useEffect(() => { if (!open) return; const position = () => { if (!panel.current) return; panel.current.style.transform = ""; const rect = panel.current.getBoundingClientRect(); const margin = 16; const delta = rect.left < margin ? margin - rect.left : rect.right > window.innerWidth - margin ? window.innerWidth - margin - rect.right : 0; if (delta) panel.current.style.transform = `translateX(${delta}px)`; }; position(); window.addEventListener("resize", position); return () => window.removeEventListener("resize", position); }, [open]);
+	useEffect(() => {
+		if (!open) return;
+		const position = () => {
+			const element = panel.current;
+			if (!element) return;
+			// Restore CSS placement before every measure; transforms retain the old overflow box.
+			element.style.left = "";
+			element.style.right = "";
+			const rect = element.getBoundingClientRect();
+			const margin = 16;
+			const viewportWidth = document.documentElement.clientWidth;
+			const delta = rect.left < margin ? margin - rect.left : rect.right > viewportWidth - margin ? viewportWidth - margin - rect.right : 0;
+			if (delta) {
+				element.style.left = `${element.offsetLeft + delta}px`;
+				element.style.right = "auto";
+			}
+		};
+		position();
+		window.addEventListener("resize", position);
+		return () => window.removeEventListener("resize", position);
+	}, [open]);
 	const close = () => { setOpen(false); button.current?.focus(); };
 	return <div ref={container} className={`allauth-header-menu ${className}`} onKeyDown={event => {
 		if (event.key === "Escape") { event.preventDefault(); setOpen(false); button.current?.focus(); }
