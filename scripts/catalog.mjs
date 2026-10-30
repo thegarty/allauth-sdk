@@ -56,7 +56,7 @@ export function verifyTag(entry, files = archiveFiles(entry)) {
   return files;
 }
 export function notesFor(entry) {
-  const date = entry.publishedAt ? `Recorded SDK publication time: ${entry.publishedAt}.` : "The original SDK publication date was not retained. This release backfills an already-public archive; its Git import and GitHub publication dates are not original historical release dates.";
+  const date = entry.publishedAt ? `Recorded SDK publication time: ${entry.publishedAt}.` : entry.dateConfidence === "pending" ? "This is a new SDK publication. GitHub release metadata records its exact publication time." : "The original SDK publication date was not retained. This release backfills an already-public archive; its Git import and GitHub publication dates are not original historical release dates.";
   return `${entry.summary}\n\n${entry.notes.map((note) => `- ${note}`).join("\n")}\n\n${date}\n\n[Exact SDK source](${entry.sourceUrl}) · [Public release record](${entry.changelogUrl})\n\nSHA-256: \`${entry.sha256}\`\n`;
 }
 

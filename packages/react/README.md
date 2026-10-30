@@ -1,8 +1,12 @@
-# AllAuth React SDK 1.4.3
+<!-- cspell:words organisation organisations -->
 
-Previous verified published SDK: **1.4.1**, [download](https://allauth.co/sdk/allauth-react-1.4.1.tgz).
-SHA-256: `4e473030ceebebd3273cb200d374587f9478ccc8bafd1bf0c07845a54b10701d`.
-The default setup SDK is **1.4.3** and includes automatic Google, Apple and Microsoft sign-in, signup, organization, connected-support and environment-specific provider improvements. Publish its versioned archive alongside the matching service changes. Previously published archives are immutable.
+# AllAuth React SDK 1.4.4
+
+Previous verified published SDK: **1.4.3**, [download](https://allauth.co/sdk/allauth-react-1.4.3.tgz).
+SHA-256: `1945650e97e2ad364e7be36f87d276c58544c3ed2e589ce187aa7a4489c96178`.
+The default setup SDK is **1.4.4**. Its Next.js application proxy forwards AllAuth's `Retry-After` response header unchanged, including numeric delays and HTTP dates in JSON or streamed responses. HTTP 429, stable JSON error codes, scoped cookie headers and existing request signatures remain compatible. Previously published archives are immutable.
+
+AllAuth's service-side session-check resilience fix works with existing SDK versions. Upgrade your pinned package and rebuild your application to forward `Retry-After` through the proxy to browsers. This SDK change adds no automatic retries, completed session-result cache or customer dependency upgrades.
 
 SDK 1.4.2 refines the native account dialog and preserves profile editing after a successful save. Account actions continue to use native AllAuth sessions and the selected environment's policy.
 `UserButton variant="avatar" managementMode="modal"` accepts an optional async `onProfileUpdated` callback after the native profile has been saved and the session refreshed. Use this callback to synchronize the application's own member profile. The SDK owns the dialog, forms, security actions and responsive layout.

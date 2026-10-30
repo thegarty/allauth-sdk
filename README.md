@@ -5,12 +5,14 @@ The portable AllAuth React SDK, its Next.js app proxy, and verified release arch
 ## Install
 
 ```sh
-pnpm add https://allauth.co/sdk/allauth-react-1.4.3.tgz better-auth@1.7.7 @better-auth/passkey@1.7.7 lucide-react@0.575.0
+pnpm add https://allauth.co/sdk/allauth-react-1.4.4.tgz better-auth@1.7.7 @better-auth/passkey@1.7.7 lucide-react@0.575.0
 ```
 
 Use compatible React and React DOM versions from the SDK's [peer dependency ranges](packages/react/package.json), and import `@allauth/react/styles.css`. Next.js is needed only for the Next.js adapter. Optional Better Auth UI integration has additional peers declared in that manifest.
 
-See the exact packaged [integration guide](packages/react/README.md), [repository docs](docs/README.md), [changelog](CHANGELOG.md), and [GitHub releases](https://github.com/thegarty/allauth-sdk/releases). Each release provides its original `.tgz` and a SHA-256 checksum. Canonical downloads remain at [allauth.co/sdk](https://allauth.co/sdk/allauth-react-1.4.3.tgz).
+See the exact packaged [integration guide](packages/react/README.md), [repository docs](docs/README.md), [changelog](CHANGELOG.md), and [GitHub releases](https://github.com/thegarty/allauth-sdk/releases). Each release provides its original `.tgz` and a SHA-256 checksum. Canonical downloads remain at [allauth.co/sdk](https://allauth.co/sdk/allauth-react-1.4.4.tgz).
+
+SDK 1.4.4 forwards AllAuth's `Retry-After` through the Next.js proxy while preserving status, JSON error codes and scoped cookies. AllAuth's service-side session-check resilience fix works with older SDKs; upgrading enables the response header to reach browsers through existing application proxies. No automatic retry or customer dependency upgrade is introduced.
 
 ## Source and history
 

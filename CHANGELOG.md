@@ -2,6 +2,20 @@
 
 These notes reconstruct verified public archive contents. Git import dates are not historical SDK publication dates. Unknown dates are retained as unknown.
 
+## 1.4.4
+
+The Next.js application proxy now forwards Retry-After from AllAuth so applications can honor a temporary session-check rate refusal. HTTP status, JSON error codes and cookie headers remain intact. Existing integrations receive the service-side session-check resilience fix without an SDK upgrade; update your pinned package and rebuild to forward the response header to browsers.
+
+Publication time: see the immutable GitHub release metadata; no preparation timestamp is substituted.
+
+- The Next.js proxy forwards Retry-After unchanged for both JSON and streamed responses, including numeric delays and HTTP dates.
+- HTTP 429 status, the service's stable error code, separate Set-Cookie headers and existing request-signature behavior remain compatible.
+- No automatic retries, customer dependency upgrades, credential changes or completed session-result caching are introduced. Existing SDK versions continue to authenticate with the updated service.
+
+[Source](https://github.com/thegarty/allauth-sdk/tree/v1.4.4/packages/react) · [Archive](https://allauth.co/sdk/allauth-react-1.4.4.tgz) · [Release record](https://allauth.co/releases/sdk-1-4-4)
+
+SHA-256: `bf3896199f789253fbaf0acb6a8c7f8975912bf8bec1118c54668c67ac9896ee`
+
 ## 1.4.3
 
 Organisation permission and slug checks no longer reload the active organisation. The organisation manager verifies fully granted permissions in one request, reducing delays and request-limit errors. Existing APIs, sign-in flows and organisation permissions remain compatible. Upgrade your pinned SDK package and rebuild your application when convenient.

@@ -6,4 +6,6 @@ Each `vVERSION` tag preserves the exact archive file bytes under `packages/react
 
 The public archive allowlist is https://allauth.co/sdk/integrity.json. The supplementary v1.0.0 tag was imported after live URL and checksum verification confirmed that the archive had already been public. It is an orphan import commit so the first 15 reconstructed tags remain unchanged. This repository contains SDK distribution files and release tooling, not the hosted AllAuth platform source or its configuration.
 
+SDK 1.4.4 is a new release prepared through this repository's checked publication pathway, rather than a reconstruction. Its catalog retains the exact new archive and source hashes; GitHub release metadata supplies the actual publication time without substituting a preparation timestamp.
+
 The archives do not declare an SDK license and contain no SDK LICENSE file. Reconstruction adds no license or new rights. Dependency licenses and third-party terms remain separate. The package manifests retain `private: true`; npm publication is not configured.

@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { publicationPlan } from "../scripts/publish-release.mjs";
+import { notesFor } from "../scripts/catalog.mjs";
+
+test("a new release without publication evidence does not invent a timestamp or historical backfill", () => {
+  const notes = notesFor({ summary: "New SDK", notes: ["Retry-After forwarding"], publishedAt: null, dateConfidence: "pending", sourceUrl: "https://fixture.example/source", changelogUrl: "https://fixture.example/release", sha256: "a".repeat(64) });
+  assert.match(notes, /new SDK publication/);
+  assert.doesNotMatch(notes, /backfills|Recorded SDK publication time/);
+});
 
 const expected = [
   { name: "allauth-react-1.4.3.tgz", size: 3, sha256: "a".repeat(64) },
