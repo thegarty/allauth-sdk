@@ -1,0 +1,15 @@
+# Releasing the SDK
+
+1. Make the SDK change with a focused regression test. Keep hosted platform source, deployment configuration, credentials, and private fixtures outside this repository.
+2. Bump the SDK version deliberately. Keep previously published archives and tags unchanged. Package into a new versioned `.tgz`; do not repack an existing filename.
+3. Add the archive to `releases/archives`, its checksum to `releases/checksums`, and matching metadata, grounded notes, provenance and source-file hashes to `releases/catalog.json` and `releases/integrity.json`. Update `releases/source-allowlist.json` explicitly when introducing a new packaged source file.
+4. Ensure `packages/react` exactly matches the new archive and review its checksum, source diff and notes. Changed dependency versions require `pnpm install --lockfile-only`, followed by `pnpm install --frozen-lockfile`.
+5. Commit the reviewed source and metadata and create the **local** `vVERSION` tag. Run `pnpm check` and `pnpm check:release vVERSION`; the full parity check requires that local tag. Push only after those checks pass. CI repeats archive/tag parity checks and the actual SDK regression test before publication.
+6. The release workflow creates a **draft**, uploads the archive and `.sha256` file, verifies both asset digests, and then publishes. Keep GitHub release immutability enabled. No `--clobber`, asset replacement, or published-release rewrite is used.
+7. Verify the published release reports `immutable: true`, its exact title/body/prerelease metadata matches the catalog, its two asset digests match the local files, and the source tag still matches the archive. Existing published releases are checked idempotently and left unchanged. A mismatched draft or published release stops the publisher; it is never silently overwritten. Generate the exact canonical body with `node scripts/verify-release.mjs vVERSION --notes`.
+
+The historical tags were reconstructed before repository tooling was added. Their original release dates are unknown except where the catalog has retained evidence. A maintainer can backfill an existing historical tag through the workflow's manual `tag` input on `main`; the workflow verifies its exact archived source and assets without inventing an old Git or publication date.
+
+The repository owner enables immutable releases. GitHub's standard Actions token has contents permissions, not repository administration permissions, so CI does not change that setting or use an administrator secret. The publisher verifies the immutable flag after publication and refuses to alter existing published releases. See GitHub's [draft-first immutable release guidance](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) and [release API](https://docs.github.com/en/rest/releases/releases).
+
+Distribution is through the verified `.tgz` files and GitHub release assets. Do not enable npm publishing or change `private: true` without separately establishing namespace ownership and the SDK license. No SDK license was added during reconstruction. Dependency licenses retain their own terms.
