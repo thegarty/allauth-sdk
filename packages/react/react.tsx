@@ -15,11 +15,15 @@ import { googleIcon } from "./google-icon";
 import { AllAuthWordmark } from "./allauth-wordmark";
 import { brandForeground, brandLinkColor, publicSDKConfiguration } from "./branding";
 import type { AllAuthPublicBranding } from "./branding";
+import { defaultPasswordPolicy, passwordPolicyDescription, passwordPolicyError } from "./password-policy";
+import type { AllAuthPasswordPolicy } from "./password-policy";
+export type { AllAuthPasswordPolicy } from "./password-policy";
 export type { AllAuthPublicBranding } from "./branding";
 import { createAllAuthClient } from "./client";
 import { Avatar, AvatarUserButton, CompactOrganizationSwitcher, safeAvatar } from "./header";
 import type { OrganizationHeaderProps } from "./header";
 import { Dialog } from "./dialog";
+import { SupportBanner } from "./support-banner";
 import { AvatarUpload } from "./avatar-upload";
 import { addNativePasskey } from "./passkey";
 import { useAuthReturnTo, withAuthReturnTo } from "./auth-return";
@@ -44,6 +48,8 @@ import type { SafeSession } from "./helpers";
 export type AllAuthCapabilities = {
 	emailPassword: boolean;
 	google: boolean;
+	/** The selected environment uses its own Google credentials, or the shared broker. */
+	googleProvider?: "google" | "allauth" | null;
 	organizations: boolean;
 	twoFactor: boolean;
 	/** False when the environment disallows registration; omitted by older servers. */
@@ -52,6 +58,8 @@ export type AllAuthCapabilities = {
 	emailVerificationRequired?: boolean;
 	/** True only when the native server has profile image storage configured. */
 	profileImageUpload?: boolean;
+	/** Rules for signup and replacement passwords; omitted by older servers. */
+	passwordPolicy?: AllAuthPasswordPolicy;
 };
 /** Optional application branding shared by the embedded authentication forms. */
 export type AllAuthBranding = { name?: string; logo?: ReactNode };
@@ -66,6 +74,8 @@ export type AllAuthProviderProps = {
 	profileUrl?: string;
 	capabilities?: AllAuthCapabilities;
 	branding?: AllAuthBranding;
+	/** Show the persistent support banner when the server proxy enables supportAccess. */
+	supportAccess?: boolean;
 };
 
 type AllAuthContextValue = {
@@ -96,6 +106,7 @@ export function AllAuthProvider({
 	profileUrl = "/account",
 	capabilities: configured,
 	branding,
+	supportAccess = false,
 }: AllAuthProviderProps) {
 	const path = proxyBasePath(basePath);
 	const [challenge, setChallenge] = useState(false);
@@ -181,7 +192,7 @@ export function AllAuthProvider({
 		setChallenge,
 	};
 	return (
-		<AllAuthContext.Provider value={value}>{children}</AllAuthContext.Provider>
+		<AllAuthContext.Provider value={value}>{supportAccess && <SupportBanner basePath={path} />}{children}</AllAuthContext.Provider>
 	);
 }
 
@@ -228,7 +239,8 @@ export function ForgotPassword({ className = "", style, resetPasswordUrl = "/res
 
 /** Consume the native reset token supplied by the mailed callback. */
 export function ResetPassword({ className = "", style, token, signInUrl, afterSignInUrl: target, title, subtitle, logo }: AuthAppearance & { token?: string }) {
-	const { client, signInUrl: configuredSignIn, afterSignInUrl, basePath, branding, publicBranding } = useAllAuth();
+	const { client, signInUrl: configuredSignIn, afterSignInUrl, basePath, branding, publicBranding, capabilities } = useAllAuth();
+	const passwordPolicy = capabilities?.passwordPolicy ?? defaultPasswordPolicy;
 	const { intent } = useAuthReturnTo(target, afterSignInUrl, basePath);
 	const id = useId();
 	const [password, setPassword] = useState("");
@@ -238,7 +250,10 @@ export function ResetPassword({ className = "", style, token, signInUrl, afterSi
 	const [done, setDone] = useState(false);
 	const submit = async (event: FormEvent) => {
 		event.preventDefault(); setError("");
+		if (!capabilities) { setError("Password rules are still loading. Try again shortly."); return; }
 		if (password !== confirmation) { setError("The passwords must match."); return; }
+		const invalidPassword = passwordPolicyError(password, passwordPolicy);
+		if (invalidPassword) { setError(invalidPassword); return; }
 		const resetToken = token || new URLSearchParams(window.location.search).get("token");
 		if (!resetToken) { setError("Open the reset link from your email."); return; }
 		setBusy(true);
@@ -252,9 +267,10 @@ export function ResetPassword({ className = "", style, token, signInUrl, afterSi
 			<div className="allauth-auth-body">
 				<Notice message={error} error />
 				{done ? <Notice message="Password changed. Sign in with your new password." /> : <form className="allauth-auth-form" onSubmit={submit}>
-					<PasswordField label="New password" id={`${id}-password`} value={password} onChange={setPassword} autoComplete="new-password" minLength={12} maxLength={128} disabled={busy} />
-					<Field label="Confirm password" id={`${id}-confirm`}><input id={`${id}-confirm`} type="password" placeholder="Confirm your new password" minLength={12} maxLength={128} required autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} disabled={busy} /></Field>
-					<button type="submit" className="allauth-primary" disabled={busy}>{busy ? "Saving…" : "Change password"}<ArrowRight size={16} aria-hidden="true" /></button>
+					<PasswordField label="New password" id={`${id}-password`} value={password} onChange={setPassword} autoComplete="new-password" minLength={passwordPolicy.minLength} maxLength={passwordPolicy.maxLength} disabled={busy || !capabilities} />
+					<p className="allauth-muted">{passwordPolicyDescription(passwordPolicy)}</p>
+					<Field label="Confirm password" id={`${id}-confirm`}><input id={`${id}-confirm`} type="password" placeholder="Confirm your new password" minLength={passwordPolicy.minLength} maxLength={passwordPolicy.maxLength} required autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} disabled={busy || !capabilities} /></Field>
+					<button type="submit" className="allauth-primary" disabled={busy || !capabilities}>{busy ? "Saving…" : "Change password"}<ArrowRight size={16} aria-hidden="true" /></button>
 				</form>}
 			</div>
 			<AuthFooter><p><a href={withAuthReturnTo(signInUrl ?? configuredSignIn, intent)}>Back to sign in</a></p></AuthFooter>
@@ -275,7 +291,7 @@ function SecuritySettings({ user }: { user: { id: string; twoFactorEnabled?: boo
 	const run = async (action: () => Promise<void>) => { setBusy(true); setError(""); setMessage(""); try { await action(); } catch (cause) { setError(authError(cause)); } finally { setPassword(""); setBusy(false); } };
 	const begin = (event: FormEvent) => { event.preventDefault(); void run(async () => { const result = await client.twoFactor.enable(password ? { password } : {}); if (result.error) throw result.error; if (!result.data || result.data.method !== "totp" || !result.data.totpURI || !result.data.backupCodes) throw new Error("Authenticator setup is unavailable."); setSetup(result.data); }); };
 	const verify = (event: FormEvent) => { event.preventDefault(); void run(async () => { const result = await client.twoFactor.verifyTotp({ code: code.trim(), trustDevice: false }); if (result.error) throw result.error; setCode(""); setSetup(undefined); setMessage("Two-factor authentication enabled. Keep your backup codes in a safe place."); await client.getSession(); }); };
-	return <div className="allauth-stack"><Notice message={error} error /><Notice message={message} />{capabilities?.twoFactor && <details className="allauth-security-detail"><summary>Two-factor authentication {user.twoFactorEnabled ? "· Enabled" : "· Not enabled"}</summary><div className="allauth-stack">{setup ? <><p>Add this account to your authenticator before verifying the first code. Save the backup codes before continuing.</p><Field label="Authenticator setup URI" id={`${id}-uri`}><input id={`${id}-uri`} value={setup.totpURI} readOnly /></Field><Field label="Manual setup key" id={`${id}-secret`}><input id={`${id}-secret`} value={new URL(setup.totpURI).searchParams.get("secret") || ""} readOnly /></Field><pre style={{ overflowWrap: "anywhere", whiteSpace: "pre-wrap" }}>{setup.backupCodes.join("\n")}</pre><form className="allauth-stack allauth-security-form" onSubmit={verify}><Field label="Authenticator code" id={`${id}-code`}><input id={`${id}-code`} value={code} onChange={(event) => setCode(event.target.value)} autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" required disabled={busy} /></Field><button type="submit" className="allauth-compact-button" disabled={busy}>Verify and enable</button></form></> : <form className="allauth-stack allauth-security-form" onSubmit={user.twoFactorEnabled ? (event) => { event.preventDefault(); void run(async () => { const result = await client.twoFactor.disable(password ? { password } : {}); if (result.error) throw result.error; setMessage("Two-factor authentication disabled."); await client.getSession(); }); } : begin}><Field label="Current password (if you have one)" id={`${id}-factor-password`}><input id={`${id}-factor-password`} type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} disabled={busy} /></Field><button type="submit" className="allauth-compact-button" disabled={busy}>{user.twoFactorEnabled ? "Disable two-factor authentication" : "Set up authenticator"}</button></form>}</div></details>}<details className="allauth-security-detail"><summary>Passkeys</summary><div className="allauth-stack"><p className="allauth-muted">Use a device or security key supported by your browser.</p><button type="button" className="allauth-compact-button" disabled={busy} onClick={() => void run(async () => { await addNativePasskey(client); setMessage("Passkey added."); await passkeys.refetch(); })}>Add a passkey</button>{passkeys.isPending ? <Loading /> : passkeys.error ? <Notice message={authError(passkeys.error)} error /> : passkeys.data?.map((passkey) => <div key={passkey.id} className="allauth-passkey-row"><span>{passkey.name || "Passkey"}</span><button type="button" className="allauth-secondary allauth-compact-button" disabled={busy} onClick={() => void run(async () => { const result = await client.passkey.deletePasskey({ id: passkey.id }); if (result.error) throw result.error; setMessage("Passkey removed."); await passkeys.refetch(); })}>Remove</button></div>)}</div></details></div>;
+	return <div className="allauth-stack"><Notice message={error} error /><Notice message={message} />{capabilities?.twoFactor && <details className="allauth-security-detail"><summary>Two-factor authentication {user.twoFactorEnabled ? "· Enabled" : "· Not enabled"}</summary><div className="allauth-stack">{setup ? <><p>Add this account to your authenticator before verifying the first code. Save the backup codes before continuing.</p><Field label="Authenticator setup URI" id={`${id}-uri`}><input id={`${id}-uri`} value={setup.totpURI} readOnly /></Field><Field label="Manual setup key" id={`${id}-secret`}><input id={`${id}-secret`} value={new URL(setup.totpURI).searchParams.get("secret") || ""} readOnly /></Field><pre style={{ overflowWrap: "anywhere", whiteSpace: "pre-wrap" }}>{setup.backupCodes.join("\n")}</pre><form className="allauth-stack allauth-security-form" onSubmit={verify}><Field label="Authenticator code" id={`${id}-code`}><input id={`${id}-code`} value={code} onChange={(event) => setCode(event.target.value)} autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" required disabled={busy || !capabilities} /></Field><button type="submit" className="allauth-compact-button" disabled={busy || !capabilities}>Verify and enable</button></form></> : <form className="allauth-stack allauth-security-form" onSubmit={user.twoFactorEnabled ? (event) => { event.preventDefault(); void run(async () => { const result = await client.twoFactor.disable(password ? { password } : {}); if (result.error) throw result.error; setMessage("Two-factor authentication disabled."); await client.getSession(); }); } : begin}><Field label="Current password (if you have one)" id={`${id}-factor-password`}><input id={`${id}-factor-password`} type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} disabled={busy || !capabilities} /></Field><button type="submit" className="allauth-compact-button" disabled={busy || !capabilities}>{user.twoFactorEnabled ? "Disable two-factor authentication" : "Set up authenticator"}</button></form>}</div></details>}<details className="allauth-security-detail"><summary>Passkeys</summary><div className="allauth-stack"><p className="allauth-muted">Use a device or security key supported by your browser.</p><button type="button" className="allauth-compact-button" disabled={busy || !capabilities} onClick={() => void run(async () => { await addNativePasskey(client); setMessage("Passkey added."); await passkeys.refetch(); })}>Add a passkey</button>{passkeys.isPending ? <Loading /> : passkeys.error ? <Notice message={authError(passkeys.error)} error /> : passkeys.data?.map((passkey) => <div key={passkey.id} className="allauth-passkey-row"><span>{passkey.name || "Passkey"}</span><button type="button" className="allauth-secondary allauth-compact-button" disabled={busy || !capabilities} onClick={() => void run(async () => { const result = await client.passkey.deletePasskey({ id: passkey.id }); if (result.error) throw result.error; setMessage("Passkey removed."); await passkeys.refetch(); })}>Remove</button></div>)}</div></details></div>;
 }
 
 type Appearance = { className?: string; style?: CSSProperties };
@@ -527,7 +543,7 @@ export function SignIn({ className = "", style, afterSignInUrl: target, signUpUr
 		setConnecting(true);
 		setError("");
 		try {
-			const response = await client.signIn.social({ provider: "allauth", callbackURL: appCallback(targetPath, window.location.origin) });
+			const response = await client.signIn.social({ provider: capabilities?.googleProvider || "allauth", callbackURL: appCallback(targetPath, window.location.origin) });
 			if (response.error) throw response.error;
 		} catch (error) {
 			setError(authError(error));
@@ -574,6 +590,7 @@ export type SignUpProps = AuthAppearance & {
 export function SignUp({ className = "", style, afterSignUpUrl: target, checkEmailUrl, signInUrl: signInPath, title, subtitle, logo }: SignUpProps) {
 	const context = useAllAuth();
 	const { client, capabilities, branding, publicBranding } = context;
+	const passwordPolicy = capabilities?.passwordPolicy ?? defaultPasswordPolicy;
 	const { targetPath, intent } = useAuthReturnTo(target, context.afterSignUpUrl, context.basePath);
 	const checkEmailPath = checkEmailUrl === undefined ? undefined : withAuthReturnTo(checkEmailUrl, intent);
 	const id = useId();
@@ -593,6 +610,8 @@ export function SignUp({ className = "", style, afterSignUpUrl: target, checkEma
 		if (!firstName.trim()) { setError("Enter your first name."); return; }
 		const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(" ");
 		if (fullName.length > 200) { setError("Your full name must be 200 characters or fewer."); return; }
+		const invalidPassword = passwordPolicyError(password, passwordPolicy);
+		if (invalidPassword) { setError(invalidPassword); return; }
 		setBusy(true);
 		setMessage("");
 		try {
@@ -618,7 +637,7 @@ export function SignUp({ className = "", style, afterSignUpUrl: target, checkEma
 		setConnecting(true);
 		setError("");
 		try {
-			const response = await client.signIn.social({ provider: "allauth", callbackURL: appCallback(targetPath, window.location.origin), newUserCallbackURL: appCallback(targetPath, window.location.origin) });
+			const response = await client.signIn.social({ provider: capabilities?.googleProvider || "allauth", callbackURL: appCallback(targetPath, window.location.origin), newUserCallbackURL: appCallback(targetPath, window.location.origin) });
 			if (response.error) throw response.error;
 		} catch (error) {
 			setError(authError(error));
@@ -640,7 +659,8 @@ export function SignUp({ className = "", style, afterSignUpUrl: target, checkEma
 							<Field label="Last name (optional)" id={`${id}-last-name`}><input id={`${id}-last-name`} name="lastName" placeholder="Last name" autoComplete="family-name" maxLength={200} value={lastName} onChange={(event) => setLastName(event.target.value)} disabled={busy} /></Field>
 						</div>
 						<Field label="Email address" id={`${id}-email`}><input id={`${id}-email`} name="email" type="email" placeholder="Enter your email address" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} disabled={busy} /></Field>
-						<PasswordField id={`${id}-password`} value={password} onChange={setPassword} autoComplete="new-password" minLength={12} maxLength={128} disabled={busy} />
+						<PasswordField id={`${id}-password`} value={password} onChange={setPassword} autoComplete="new-password" minLength={passwordPolicy.minLength} maxLength={passwordPolicy.maxLength} disabled={busy} />
+						<p className="allauth-muted">{passwordPolicyDescription(passwordPolicy)}</p>
 						<button type="submit" className="allauth-primary" disabled={busy}>{busy ? "Creating account…" : "Continue"}<ArrowRight size={16} aria-hidden="true" /></button>
 					</form>}
 					{!capabilities.emailPassword && !capabilities.google && <Notice message="Account creation is not enabled for this app." />}
@@ -883,7 +903,7 @@ function Sessions({ signInUrl }: { signInUrl: string }) {
 }
 
 function ProfileForms({ user, section = "all", onUpdated }: { user: { name: string; email: string; emailVerified: boolean; image?: string | null }; section?: "all" | "profile" | "security"; onUpdated?: () => void | Promise<void> }) {
- const { client, afterSignInUrl } = useAllAuth(); const id = useId();
+ const { client, afterSignInUrl, capabilities } = useAllAuth(); const passwordPolicy = capabilities?.passwordPolicy ?? defaultPasswordPolicy; const id = useId();
  const [name, setName] = useState(user.name); const [image, setImage] = useState(user.image || ""); const [editing, setEditing] = useState(section === "all");
  const [currentPassword, setCurrentPassword] = useState(""); const [newPassword, setNewPassword] = useState(""); const [confirmPassword, setConfirmPassword] = useState("");
  const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [message, setMessage] = useState("");
@@ -902,11 +922,12 @@ function ProfileForms({ user, section = "all", onUpdated }: { user: { name: stri
    <button type="submit" disabled={busy || avatarBusy}>{busy ? "Saving…" : "Save profile"}</button>
   </form>}
   {!user.emailVerified && <button type="button" className="allauth-secondary" disabled={busy} onClick={() => void run(() => client.sendVerificationEmail({ email: user.email, callbackURL: appCallback(afterSignInUrl, window.location.origin) }), "Verification email requested. Check your inbox.")}>Verify email address</button>}
- </>}{section !== "profile" && <details className="allauth-security-detail"><summary>Password</summary><form className="allauth-stack allauth-security-form" aria-label="Change password" onSubmit={event => { event.preventDefault(); if (newPassword !== confirmPassword) { setError("New passwords must match."); return; } void run(() => client.changePassword({ currentPassword, newPassword, revokeOtherSessions: true }), "Password changed. Other sessions have been ended."); }}>
+ </>}{section !== "profile" && <details className="allauth-security-detail"><summary>Password</summary><form className="allauth-stack allauth-security-form" aria-label="Change password" onSubmit={event => { event.preventDefault(); if (!capabilities) { setError("Password rules are still loading. Try again shortly."); return; } if (newPassword !== confirmPassword) { setError("New passwords must match."); return; } const invalidPassword = passwordPolicyError(newPassword, passwordPolicy); if (invalidPassword) { setError(invalidPassword); return; } void run(() => client.changePassword({ currentPassword, newPassword, revokeOtherSessions: true }), "Password changed. Other sessions have been ended."); }}>
   <Field label="Current password" id={`${id}-current`}><input id={`${id}-current`} type="password" required autoComplete="current-password" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} disabled={busy}/></Field>
-  <Field label="New password" id={`${id}-new`}><input id={`${id}-new`} type="password" required minLength={12} maxLength={128} autoComplete="new-password" value={newPassword} onChange={event => setNewPassword(event.target.value)} disabled={busy}/></Field>
-  <Field label="Confirm new password" id={`${id}-confirm`}><input id={`${id}-confirm`} type="password" required minLength={12} maxLength={128} autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} disabled={busy}/></Field>
-  <button type="submit" className="allauth-compact-button" disabled={busy}>{busy ? "Saving…" : "Change password"}</button>
+  <Field label="New password" id={`${id}-new`}><input id={`${id}-new`} type="password" required minLength={passwordPolicy.minLength} maxLength={passwordPolicy.maxLength} autoComplete="new-password" value={newPassword} onChange={event => setNewPassword(event.target.value)} disabled={busy}/></Field>
+  <p className="allauth-muted">{passwordPolicyDescription(passwordPolicy)}</p>
+  <Field label="Confirm new password" id={`${id}-confirm`}><input id={`${id}-confirm`} type="password" required minLength={passwordPolicy.minLength} maxLength={passwordPolicy.maxLength} autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} disabled={busy}/></Field>
+  <button type="submit" className="allauth-compact-button" disabled={busy || !capabilities}>{busy ? "Saving…" : "Change password"}</button>
  </form></details>}</>;
 }
 

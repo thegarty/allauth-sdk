@@ -1,6 +1,6 @@
 {
   "name": "@allauth/react",
-  "version": "1.3.5",
+  "version": "1.4.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -20,6 +20,7 @@
     "BETTER_AUTH_UI.md",
     "google-icon.ts",
     "branding.ts",
+    "password-policy.ts",
     "allauth-wordmark.tsx",
     "header.tsx",
     "header.css",
@@ -29,7 +30,9 @@
     "avatar-upload.tsx",
     "passkey.ts",
     "invitations.ts",
-    "auth-return.ts"
+    "auth-return.ts",
+    "support-server.ts",
+    "support-banner.tsx"
   ],
   "sideEffects": [
     "./styles.css"

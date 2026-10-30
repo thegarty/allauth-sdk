@@ -14,7 +14,7 @@ export function createAllAuthClient(
 	const path = proxyBasePath(basePath);
 	const origin =
 		typeof window === "undefined" ? "http://localhost" : window.location.origin;
-	const organization = organizationClient({ teams: { enabled: true } });
+	const organization = organizationClient({ teams: { enabled: true }, dynamicAccessControl: { enabled: true } });
 	return createAuthClient({
 		baseURL: `${origin}${path}`,
 		fetchOptions: {

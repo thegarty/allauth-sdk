@@ -138,3 +138,8 @@
   .allauth-brand .allauth-logo-light:not(:where(.light, [data-theme="light"]) *) { display: none; }
   .allauth-brand .allauth-logo-dark:not(:where(.light, [data-theme="light"]) *) { display: block; }
 }
+/* Visible across page navigation when support access is explicitly enabled. */
+.allauth-support-banner { position: sticky; top: 0; z-index: 100; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-bottom: 1px solid #b45309; background: #fffbeb; color: #78350f; font-size: 14px; }
+.allauth-support-banner p { margin: 4px 0 0; font-size: 12px; }
+.allauth-support-banner strong, .allauth-support-banner p { overflow-wrap: anywhere; }
+.allauth-support-banner button { width: auto; flex-shrink: 0; }

@@ -1,31 +1,45 @@
-# AllAuth React SDK 1.3.5 (working candidate)
+# AllAuth React SDK 1.4.0 (working candidate)
 
 Latest verified published SDK: **1.3.4**, [download](https://allauth.co/sdk/allauth-react-1.3.4.tgz).
 SHA-256: `ead480cbdcc502e29c78a26bc849845478e7de3bd8a9369b546cbbb3008998a5`.
-The working SDK is **1.3.5** and includes additional signup changes; publish it as
-a newer version after its checks. The published 1.3.4 archive is immutable.
+The working SDK is **1.4.0** and includes signup, organization, connected-support and environment-specific Google improvements.
+The archive is verified locally; publish it alongside the matching service changes. The published 1.3.4 archive is immutable.
 
 A portable React SDK backed by the app's same-origin AllAuth proxy. Install the
 versioned tarball plus its declared peers, and import `@allauth/react/styles.css`.
 React and React DOM must have compatible versions. No Next.js dependency is
 required for the React components.
 
-The working 1.3.5 candidate aligns signup with the selected environment's registration and email
+The working 1.4.0 candidate aligns signup with the selected environment's registration and email
 verification policy. The optional `signUpEnabled` and
 `emailVerificationRequired` capability flags hide disabled registration and
 route completed signups to sign-in when verification is explicitly disabled.
-Older servers retain the verification-first behavior. Signup passwords must
-contain at least 12 characters, matching the server. This release also preserves
+Older servers retain the verification-first behavior. The optional `passwordPolicy`
+capability supplies per-environment minimum/maximum length and optional uppercase,
+lowercase, number and symbol requirements. Signup, reset and password-change forms
+show and validate those rules; existing sign-in passwords remain usable. The default
+is 8–128 characters with no composition requirements. An older server that omits
+`passwordPolicy` uses the same client fallback; native server validation is authoritative.
+Configure the rules in User & authentication → Email & password for the selected
+application environment. This release also preserves
 checked local return destinations through native authentication and recovery.
+
+The working candidate also accepts the optional `googleProvider` capability:
+`"google"` selects the environment's direct Google client, `"allauth"` selects
+the shared broker, and `null` accompanies `google: false`. Sign-in and signup
+use that exact provider while preserving callback and MFA behavior. Older servers
+that omit the field keep the shared-broker behavior. Configure direct credentials
+under User & authentication → Social connections for the exact environment.
 
 SDK 1.3.4 adds opt-in `UserButton variant="avatar" managementMode="modal"` and
 `OrganizationSwitcher variant="compact" managementMode="modal"`. Their existing
 page/card defaults remain available.
 
 `UserProfileModal` and `OrganizationProfileModal` are controlled with `open` and
-`onClose`; their initial sections are `profile`/`security` and `general`/`members`.
+`onClose`; their initial sections are `profile`/`security` and
+`general`/`members`/`teams`/`roles` (the last two are in working 1.4.0).
 `UserProfile section="profile" | "security" | "all" embedded` and
-`OrganizationProfile view="general" | "members" embedded` also work in app pages.
+`OrganizationProfile view="general" | "members" | "teams" | "roles" embedded` also work in app pages.
 
 Organisation callbacks receive real native organisations after `setActive`:
 `onSelect`, `onCreate`, and `onOrganizationChange(org, reason)`, where reason is
@@ -62,7 +76,7 @@ through their links and email/Google callbacks. Explicit component callback
 props take precedence; invalid query values fall back to the provider callback.
 Custom authentication forms must carry the checked destination themselves.
 
-**Working 1.3.5 feature:** `SignUp` accepts an optional `checkEmailUrl` for the local page shown after a
+**Working 1.4.0 feature:** `SignUp` accepts an optional `checkEmailUrl` for the local page shown after a
 successful email signup that has no session:
 
 ```tsx
@@ -95,3 +109,42 @@ The return helpers are exported from `@allauth/react`:
 A full-page native MFA challenge can also read a checked `callbackUrl` when
 `challenge=two-factor` and `returnTo` is absent. Native verification is still
 required before navigating.
+
+Working 1.4.0 adds native Teams and Roles organization settings. Teams support
+creation, renaming, confirmed deletion and explicit membership changes. Native
+team rosters require the signed-in user to belong to that team; opening a roster
+never joins automatically. Roles support custom permission creation/editing and
+confirmed deletion. Role names stay fixed after creation to preserve member and
+invitation references, and assigned roles cannot be deleted from the UI.
+
+Organization controls check each native server permission, including delegated
+custom roles. Member and invitation selectors include readable custom roles;
+permission failures keep editing unavailable. Organization/account changes clear
+drafts and invalidate pending operation callbacks. Applications must update the
+same-origin proxy along with the SDK to allow native permission and role routes.
+
+## Connected-app support
+
+The 1.4.0 candidate supports an explicit handoff from an existing console support
+session. Enable `supportAccess: { enabled: true, basePath: "/api/allauth" }` in
+`createAllAuthProxy`, and add `supportAccess` to your shared `AllAuthProvider` or
+`AllAuthUIProvider`. The server option accepts an optional fixed local
+`afterStartUrl` (default `/`). Keep the provider mounted across app navigation.
+
+Register the exact `https://your-app.example/api/allauth/support/callback` URL
+in the environment's User & authentication → Support access settings, enable it
+and save. Its origin must already be registered. HTTP is allowed only for local
+loopback development. The custom server/proxy/provider paths must match.
+
+Start impersonation from Users, then select Open connected app. The banner shows
+the real actor, target and expiry. State, PKCE and one-use codes bind the exchange
+to that browser and app; session credentials stay in HttpOnly cookies. The same
+native support session is revoked from either domain. End support session restores
+the app's prior sign-in only while it remains valid, preserving its original
+expiry/persistence and any newer sign-in. Restoration is available for up to
+20 minutes and is invalidated by server integration-key rotation. Credentials
+and other sensitive identity changes remain blocked during support.
+
+This requires the matching service deployment and SDK update. Existing app
+integrations remain disabled until explicitly configured; do not enable the
+generic one-time-token endpoint or copy native credentials into redirect URLs.

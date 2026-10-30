@@ -7,6 +7,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { createAllAuthClient, type AllAuthClient } from "./client";
 import { appPath, proxyBasePath } from "./helpers";
+import { SupportBanner } from "./support-banner";
 
 export type AllAuthUIProviderProps = Omit<
 	AuthProviderProps<AllAuthClient>,
@@ -15,6 +16,8 @@ export type AllAuthUIProviderProps = Omit<
 	basePath?: string;
 	/** An explicit cache identity when the embedding app changes its server-side project configuration. */
 	projectKey?: string;
+	/** Requires the matching supportAccess option on the server proxy. */
+	supportAccess?: boolean;
 	twoFactorPath?: string;
 	navigate?: AuthProviderProps<AllAuthClient>["navigate"];
 };
@@ -25,6 +28,8 @@ export function AllAuthUIProvider({
 	projectKey = "",
 	twoFactorPath,
 	navigate,
+	supportAccess = false,
+	children,
 	...configuration
 }: AllAuthUIProviderProps) {
 	const path = proxyBasePath(basePath);
@@ -90,6 +95,6 @@ export function AllAuthUIProvider({
 			queryClient={queryClient}
 			navigate={safeNavigate}
 			socialSignInMode="redirect"
-		/>
+		>{supportAccess && <SupportBanner basePath={path} />}{children}</BetterAuthUIProvider>
 	);
 }

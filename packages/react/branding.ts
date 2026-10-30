@@ -1,3 +1,5 @@
+import { publicPasswordPolicy } from "./password-policy";
+
 /** Public application settings returned by the same-origin AllAuth SDK endpoint. */
 export type AllAuthPublicBranding = {
 	name: string;
@@ -64,13 +66,14 @@ export function publicBranding(value: unknown): AllAuthPublicBranding | null {
 export function publicSDKConfiguration(value: unknown) {
 	if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Sign-in options could not be loaded.");
 	const fields = value as Record<string, unknown>;
-	const { emailPassword, google, organizations, twoFactor, profileImageUpload, signUpEnabled, emailVerificationRequired } = fields;
+	const { emailPassword, google, googleProvider, organizations, twoFactor, profileImageUpload, signUpEnabled, emailVerificationRequired, passwordPolicy } = fields;
 	if (typeof emailPassword !== "boolean" || typeof google !== "boolean" || typeof organizations !== "boolean" || typeof twoFactor !== "boolean") throw new Error("Sign-in options could not be loaded.");
+	if (googleProvider !== undefined && ((googleProvider !== null && googleProvider !== "google" && googleProvider !== "allauth") || Boolean(googleProvider) !== google)) throw new Error("Sign-in options could not be loaded.");
 	if (profileImageUpload !== undefined && typeof profileImageUpload !== "boolean") throw new Error("Sign-in options could not be loaded.");
 	if (signUpEnabled !== undefined && typeof signUpEnabled !== "boolean") throw new Error("Sign-in options could not be loaded.");
 	if (emailVerificationRequired !== undefined && typeof emailVerificationRequired !== "boolean") throw new Error("Sign-in options could not be loaded.");
 	return {
-		capabilities: { emailPassword, google, organizations, twoFactor, profileImageUpload: profileImageUpload === true, ...(signUpEnabled === undefined ? {} : { signUpEnabled }), ...(emailVerificationRequired === undefined ? {} : { emailVerificationRequired }) },
+		capabilities: { emailPassword, google, ...(googleProvider === undefined ? {} : { googleProvider: googleProvider as "google" | "allauth" | null }), organizations, twoFactor, profileImageUpload: profileImageUpload === true, ...(signUpEnabled === undefined ? {} : { signUpEnabled }), ...(emailVerificationRequired === undefined ? {} : { emailVerificationRequired }), ...(passwordPolicy === undefined ? {} : { passwordPolicy: publicPasswordPolicy(passwordPolicy) }) },
 		branding: publicBranding(fields.branding),
 	};
 }

@@ -53,3 +53,12 @@ Map `twoFactorPath` to a page rendering `<Auth view="twoFactor" />` under the sa
 Use the portable SDK `SecuritySettings` for session management, or adapt the official registry `ActiveSessions` to `/api/allauth/sdk/sessions` and `/api/allauth/sdk/sessions/revoke`. These endpoints use opaque session IDs. Do not use the official native token-based session/multi-session controls with the proxy: credential fields are deliberately stripped, and they cannot authorize session revocation.
 
 The existing `@allauth/react` components remain usable without Better Auth UI. The optional entry is a provider integration, not a bundled copy of the console's app-specific registry files.
+
+Password rules are available in the same-origin `/api/allauth/sdk/config` response as
+`passwordPolicy`: `minLength`, `maxLength`, `requireUppercase`, `requireLowercase`,
+`requireNumber` and `requireSymbol`. Pass the effective length bounds to the upstream
+provider's `emailAndPassword` settings and use the rules in any custom signup/reset/
+change-password component. The `AllAuthUIProvider` wrapper leaves registry components
+and their form validation in the consuming application. Existing sign-in passwords
+must not be validated against new-password requirements. The bundled `SignUp`,
+`ResetPassword` and account forms consume these settings automatically.
