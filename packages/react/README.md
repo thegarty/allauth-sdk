@@ -1,9 +1,8 @@
-# AllAuth React SDK 1.4.0 (working candidate)
+# AllAuth React SDK 1.4.1
 
 Latest verified published SDK: **1.3.4**, [download](https://allauth.co/sdk/allauth-react-1.3.4.tgz).
 SHA-256: `ead480cbdcc502e29c78a26bc849845478e7de3bd8a9369b546cbbb3008998a5`.
-The working SDK is **1.4.0** and includes signup, organization, connected-support and environment-specific Google improvements.
-The archive is verified locally; publish it alongside the matching service changes. The published 1.3.4 archive is immutable.
+The default setup SDK is **1.4.1** and includes automatic Google, Apple and Microsoft sign-in, signup, organization, connected-support and environment-specific provider improvements. Publish its versioned archive alongside the matching service changes. Previously published archives are immutable.
 
 A portable React SDK backed by the app's same-origin AllAuth proxy. Install the
 versioned tarball plus its declared peers, and import `@allauth/react/styles.css`.
@@ -148,3 +147,24 @@ and other sensitive identity changes remain blocked during support.
 This requires the matching service deployment and SDK update. Existing app
 integrations remain disabled until explicitly configured; do not enable the
 generic one-time-token endpoint or copy native credentials into redirect URLs.
+
+### Sign in with Apple
+
+The native server advertises optional `apple` and `appleProvider` capabilities only for an environment configured with its own Apple credentials. `SignIn` and `SignUp` then render Continue with Apple and preserve the same-origin return path. Do not pass signing keys to the provider component.
+
+### Continue with Microsoft
+
+The optional `microsoft` and `microsoftProvider` capabilities advertise the environment's native Microsoft connection. `SignIn` and `SignUp` automatically render Continue with Microsoft, preserve return paths and continue native MFA. Omitted or disabled Microsoft capabilities hide the button. Configure the exact environment's server-only `ALLAUTH_PROJECT_MICROSOFT_PROVIDERS` entry and Microsoft Entra Web return URL; see `docs/content/docs/integrations/allauth-tenant-microsoft.mdx`.
+
+Google, Apple and Microsoft belong in every new app's setup review. Use the standard components without hardcoded capability flags or a manually maintained provider list. Each environment still requires its own registered provider configuration, and existing apps need the new SDK archive to receive new buttons.
+
+The Next.js proxy canonically serializes outgoing query parameters before signing
+and sending them. This matches Next ingress encoding for mobile Google callbacks
+containing `%20` spaces. It groups repeated keys and orders integer-like keys as
+Next does, while preserving every value, repeated value order and opaque
+state/code data. Custom proxies must sign the exact canonical URL they send;
+signature verification remains required.
+
+The Next.js proxy supports Apple's exact HTTPS `form_post` callback while preserving signed OAuth state and all other POST origin checks. Deploy matching server and SDK changes together. See `docs/content/docs/integrations/allauth-tenant-apple.mdx` for the server-only environment map, HTTPS return URLs, private-relay continuity and mail prerequisites.
+
+Owned-photo lifecycle availability is a separate optional boolean, `profileImageOwnershipAndDeletion` (false when absent). Native integrations that require owner-bound draft erasure must require both this flag and `profileImageUpload`. Legacy branding-backed upload availability alone does not establish user erasure. See the owning-service [source and rollout contract](../../../docs/content/docs/integrations/allauth-owned-profile-photos.mdx); no new provider configuration is activated by this SDK field.

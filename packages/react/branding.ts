@@ -66,14 +66,19 @@ export function publicBranding(value: unknown): AllAuthPublicBranding | null {
 export function publicSDKConfiguration(value: unknown) {
 	if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Sign-in options could not be loaded.");
 	const fields = value as Record<string, unknown>;
-	const { emailPassword, google, googleProvider, organizations, twoFactor, profileImageUpload, signUpEnabled, emailVerificationRequired, passwordPolicy } = fields;
+	const { emailPassword, google, googleProvider, apple, appleProvider, microsoft, microsoftProvider, organizations, twoFactor, profileImageUpload, profileImageOwnershipAndDeletion, signUpEnabled, emailVerificationRequired, passwordPolicy } = fields;
 	if (typeof emailPassword !== "boolean" || typeof google !== "boolean" || typeof organizations !== "boolean" || typeof twoFactor !== "boolean") throw new Error("Sign-in options could not be loaded.");
 	if (googleProvider !== undefined && ((googleProvider !== null && googleProvider !== "google" && googleProvider !== "allauth") || Boolean(googleProvider) !== google)) throw new Error("Sign-in options could not be loaded.");
+	if (apple !== undefined && typeof apple !== "boolean") throw new Error("Sign-in options could not be loaded.");
+	if (appleProvider !== undefined && ((appleProvider !== null && appleProvider !== "apple") || Boolean(appleProvider) !== Boolean(apple))) throw new Error("Sign-in options could not be loaded.");
+	if (microsoft !== undefined && typeof microsoft !== "boolean") throw new Error("Sign-in options could not be loaded.");
+	if (microsoftProvider !== undefined && ((microsoftProvider !== null && microsoftProvider !== "microsoft") || Boolean(microsoftProvider) !== Boolean(microsoft))) throw new Error("Sign-in options could not be loaded.");
+	if (profileImageOwnershipAndDeletion !== undefined && typeof profileImageOwnershipAndDeletion !== "boolean") throw new Error("Sign-in options could not be loaded.");
 	if (profileImageUpload !== undefined && typeof profileImageUpload !== "boolean") throw new Error("Sign-in options could not be loaded.");
 	if (signUpEnabled !== undefined && typeof signUpEnabled !== "boolean") throw new Error("Sign-in options could not be loaded.");
 	if (emailVerificationRequired !== undefined && typeof emailVerificationRequired !== "boolean") throw new Error("Sign-in options could not be loaded.");
 	return {
-		capabilities: { emailPassword, google, ...(googleProvider === undefined ? {} : { googleProvider: googleProvider as "google" | "allauth" | null }), organizations, twoFactor, profileImageUpload: profileImageUpload === true, ...(signUpEnabled === undefined ? {} : { signUpEnabled }), ...(emailVerificationRequired === undefined ? {} : { emailVerificationRequired }), ...(passwordPolicy === undefined ? {} : { passwordPolicy: publicPasswordPolicy(passwordPolicy) }) },
+		capabilities: { emailPassword, google, ...(apple === undefined ? {} : { apple, ...(appleProvider === undefined ? {} : { appleProvider: appleProvider as "apple" | null }) }), ...(microsoft === undefined ? {} : { microsoft, ...(microsoftProvider === undefined ? {} : { microsoftProvider: microsoftProvider as "microsoft" | null }) }), ...(googleProvider === undefined ? {} : { googleProvider: googleProvider as "google" | "allauth" | null }), organizations, twoFactor, profileImageUpload: profileImageUpload === true, profileImageOwnershipAndDeletion: profileImageOwnershipAndDeletion === true, ...(signUpEnabled === undefined ? {} : { signUpEnabled }), ...(emailVerificationRequired === undefined ? {} : { emailVerificationRequired }), ...(passwordPolicy === undefined ? {} : { passwordPolicy: publicPasswordPolicy(passwordPolicy) }) },
 		branding: publicBranding(fields.branding),
 	};
 }

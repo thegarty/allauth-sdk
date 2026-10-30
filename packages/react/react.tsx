@@ -48,6 +48,12 @@ import type { SafeSession } from "./helpers";
 export type AllAuthCapabilities = {
 	emailPassword: boolean;
 	google: boolean;
+	/** True only when this environment has a native Apple provider configured. */
+	apple?: boolean;
+	appleProvider?: "apple" | null;
+	/** True only when this environment has a native Microsoft provider configured. */
+	microsoft?: boolean;
+	microsoftProvider?: "microsoft" | null;
 	/** The selected environment uses its own Google credentials, or the shared broker. */
 	googleProvider?: "google" | "allauth" | null;
 	organizations: boolean;
@@ -58,6 +64,7 @@ export type AllAuthCapabilities = {
 	emailVerificationRequired?: boolean;
 	/** True only when the native server has profile image storage configured. */
 	profileImageUpload?: boolean;
+	profileImageOwnershipAndDeletion?: boolean;
 	/** Rules for signup and replacement passwords; omitted by older servers. */
 	passwordPolicy?: AllAuthPasswordPolicy;
 };
@@ -446,6 +453,20 @@ function PasswordField({ id, label = "Password", value, onChange, autoComplete, 
 	);
 }
 
+const appleIcon = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAAXNSR0IArs4c6QAAAS9JREFUSIntls1txCAQhd9uCjC+5UgJlOAucqWTcPXRFdglpAOmA3srMFdOzFZALptNZEU2bPwjRfskJCQYvpkBBoBvGQA9gLhR6wG8Y6JhQ+BvDuDlFunb1JMN9QrgBOwb7T3q062zu85HQFcDCyH2BSul0Pc9tNYP2T98SIgoMnOUUmbb/iliZkZVVXDOZdtmgY0xCCEghIC2bTGOI6y1iDHCWgulVBY8KTXGmLgkrXVOutMmMvMslIi22eOiKGbHiSh1KQArFhApZbZNUmqcc7OpDiFEpdT6e9x13eLhCiGsD5ZSLoK7rlsfjIUrxcxRCJG81tdHIElEhLIs4b1HXddomgbX6xXee2itsyrY8z1+gv8n+HIA93IG8HEA+M7c81M/TL0wGzsw4EeV/AQHmzI1JYvVXQAAAABJRU5ErkJggg==';
+function AppleButton({ busy, onClick }: { busy: boolean; onClick: () => void }) {
+	return <button type="button" className="allauth-secondary allauth-social-button allauth-apple-button" disabled={busy} onClick={onClick}><img src={appleIcon} alt="" width={18} height={18} aria-hidden="true" /><span>Continue with Apple</span></button>;
+}
+
+function MicrosoftButton({ busy, onClick }: { busy: boolean; onClick: () => void }) {
+	return (
+		<button type="button" className="allauth-secondary allauth-social-button allauth-microsoft-button" disabled={busy} onClick={onClick}>
+			<svg viewBox="0 0 21 21" width={18} height={18} aria-hidden="true" focusable="false"><path fill="#f25022" d="M0 0h10v10H0z" /><path fill="#7fba00" d="M11 0h10v10H11z" /><path fill="#00a4ef" d="M0 11h10v10H0z" /><path fill="#ffb900" d="M11 11h10v10H11z" /></svg>
+			<span>Continue with Microsoft</span>
+		</button>
+	);
+}
+
 function GoogleButton({ busy, connecting, onClick }: { busy: boolean; connecting: boolean; onClick: () => void }) {
 	return (
 		<button type="button" className="allauth-secondary allauth-social-button" disabled={busy} onClick={onClick}>
@@ -503,7 +524,7 @@ function TwoFactorChallenge({ afterSignInUrl, logo }: { afterSignInUrl: string; 
 	);
 }
 
-/** Inline email-first password sign-in, the AllAuth social broker, and native MFA challenges. */
+/** Inline email-first password sign-in, configured social providers, and native MFA challenges. */
 export function SignIn({ className = "", style, afterSignInUrl: target, signUpUrl, forgotPasswordUrl, title, subtitle, logo }: AuthAppearance) {
 	const context = useAllAuth();
 	const { client, capabilities, challenge, branding, publicBranding } = context;
@@ -538,12 +559,12 @@ export function SignIn({ className = "", style, afterSignInUrl: target, signUpUr
 			setBusy(false);
 		}
 	}
-	async function google() {
+	async function social(provider: "google" | "apple" | "microsoft") {
 		setBusy(true);
 		setConnecting(true);
 		setError("");
 		try {
-			const response = await client.signIn.social({ provider: capabilities?.googleProvider || "allauth", callbackURL: appCallback(targetPath, window.location.origin) });
+			const response = await client.signIn.social({ provider: provider === "google" ? capabilities?.googleProvider || "allauth" : provider, callbackURL: appCallback(targetPath, window.location.origin) });
 			if (response.error) throw response.error;
 		} catch (error) {
 			setError(authError(error));
@@ -558,8 +579,10 @@ export function SignIn({ className = "", style, afterSignInUrl: target, signUpUr
 				<div className="allauth-auth-body">
 					<Notice message={error} error />
 					{!capabilities ? <ConfigState /> : <>
-						{capabilities.google && !passwordStep && <GoogleButton busy={busy} connecting={connecting} onClick={() => void google()} />}
-						{capabilities.google && capabilities.emailPassword && !passwordStep && <div className="allauth-divider"><span>or</span></div>}
+						{capabilities.apple && !passwordStep && <AppleButton busy={busy} onClick={() => void social("apple")} />}
+						{capabilities.google && !passwordStep && <GoogleButton busy={busy} connecting={connecting} onClick={() => void social("google")} />}
+						{capabilities.microsoft && !passwordStep && <MicrosoftButton busy={busy} onClick={() => void social("microsoft")} />}
+						{(capabilities.google || capabilities.apple || capabilities.microsoft) && capabilities.emailPassword && !passwordStep && <div className="allauth-divider"><span>or</span></div>}
 						{capabilities.emailPassword && <form className="allauth-auth-form" onSubmit={signIn}>
 							{passwordStep ? <>
 								<div className="allauth-email-summary"><span>{email}</span><button type="button" className="allauth-back-button" disabled={busy} onClick={() => { setPasswordStep(false); setPassword(""); setError(""); }}><ChevronLeft size={16} aria-hidden="true" />Change email</button></div>
@@ -571,7 +594,7 @@ export function SignIn({ className = "", style, afterSignInUrl: target, signUpUr
 							</Field>}
 							<button type="submit" className="allauth-primary" disabled={busy}>{busy ? "Signing in…" : "Continue"}<ArrowRight size={16} aria-hidden="true" /></button>
 						</form>}
-						{!capabilities.emailPassword && !capabilities.google && <Notice message="No sign-in methods are enabled for this app." />}
+						{!capabilities.emailPassword && !capabilities.google && !capabilities.apple && !capabilities.microsoft && <Notice message="No sign-in methods are enabled for this app." />}
 					</>}
 				</div>
 				<AuthFooter>{signUpUrl && capabilities?.signUpEnabled !== false && <p>Don’t have an account? <a href={withAuthReturnTo(signUpUrl, intent)}>Sign up</a></p>}</AuthFooter>
@@ -632,12 +655,12 @@ export function SignUp({ className = "", style, afterSignUpUrl: target, checkEma
 			setBusy(false);
 		}
 	}
-	async function google() {
+	async function social(provider: "google" | "apple" | "microsoft") {
 		setBusy(true);
 		setConnecting(true);
 		setError("");
 		try {
-			const response = await client.signIn.social({ provider: capabilities?.googleProvider || "allauth", callbackURL: appCallback(targetPath, window.location.origin), newUserCallbackURL: appCallback(targetPath, window.location.origin) });
+			const response = await client.signIn.social({ provider: provider === "google" ? capabilities?.googleProvider || "allauth" : provider, callbackURL: appCallback(targetPath, window.location.origin), newUserCallbackURL: appCallback(targetPath, window.location.origin) });
 			if (response.error) throw response.error;
 		} catch (error) {
 			setError(authError(error));
@@ -651,8 +674,10 @@ export function SignUp({ className = "", style, afterSignUpUrl: target, checkEma
 			<div className="allauth-auth-body">
 				<Notice message={error} error /><Notice message={message} />
 				{!capabilities ? <ConfigState /> : capabilities.signUpEnabled === false ? <Notice message="Account creation is not enabled for this app." /> : <>
-					{capabilities.google && !message && <GoogleButton busy={busy} connecting={connecting} onClick={() => void google()} />}
-					{capabilities.google && capabilities.emailPassword && !message && <div className="allauth-divider"><span>or</span></div>}
+					{capabilities.apple && !message && <AppleButton busy={busy} onClick={() => void social("apple")} />}
+					{capabilities.google && !message && <GoogleButton busy={busy} connecting={connecting} onClick={() => void social("google")} />}
+					{capabilities.microsoft && !message && <MicrosoftButton busy={busy} onClick={() => void social("microsoft")} />}
+					{(capabilities.google || capabilities.apple || capabilities.microsoft) && capabilities.emailPassword && !message && <div className="allauth-divider"><span>or</span></div>}
 					{capabilities.emailPassword && !message && <form className="allauth-auth-form" onSubmit={submit}>
 						<div className="allauth-name-grid">
 							<Field label="First name" id={`${id}-first-name`}><input id={`${id}-first-name`} name="firstName" placeholder="First name" autoComplete="given-name" required maxLength={200} value={firstName} onChange={(event) => setFirstName(event.target.value)} disabled={busy} /></Field>
@@ -663,7 +688,7 @@ export function SignUp({ className = "", style, afterSignUpUrl: target, checkEma
 						<p className="allauth-muted">{passwordPolicyDescription(passwordPolicy)}</p>
 						<button type="submit" className="allauth-primary" disabled={busy}>{busy ? "Creating account…" : "Continue"}<ArrowRight size={16} aria-hidden="true" /></button>
 					</form>}
-					{!capabilities.emailPassword && !capabilities.google && <Notice message="Account creation is not enabled for this app." />}
+					{!capabilities.emailPassword && !capabilities.google && !capabilities.apple && !capabilities.microsoft && <Notice message="Account creation is not enabled for this app." />}
 				</>}
 			</div>
 			<AuthFooter><p>{message ? "Already verified?" : "Already have an account?"} <a href={withAuthReturnTo(signInPath ?? context.signInUrl, intent)}>Sign in</a></p></AuthFooter>

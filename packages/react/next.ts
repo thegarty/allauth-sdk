@@ -17,7 +17,7 @@ export interface AllAuthProxyOptions {
 const exactPaths = new Set(["get-session", "sign-out", "sign-in/email", "sign-in/username", "sign-in/anonymous", "sign-in/social", "sign-in/passkey", "sign-in/email-otp", "sign-in/magic-link", "magic-link/verify", "sign-up/email", "is-username-available", "verify-email", "send-verification-email", "request-password-reset", "reset-password", "update-user", "change-password", "set-password", "change-email", "delete-user", "delete-user/callback", "delete-anonymous-user", "list-accounts", "link-social", "unlink-account", "siwe/nonce", "siwe/get-nonce", "siwe/verify", "email-otp/send-verification-otp", "email-otp/check-verification-otp", "email-otp/verify-email", "email-otp/request-password-reset", "email-otp/reset-password", "email-otp/request-email-change", "email-otp/change-email", "sdk/config", "sdk/avatar", "sdk/sessions", "sdk/sessions/revoke"]);
 const pluginPath = /^(?:callback\/[a-zA-Z0-9_-]+|reset-password\/[a-zA-Z0-9_-]+|two-factor\/(?:enable|disable|verify-totp|verify-backup-code|generate-backup-codes|get-totp-uri)|organization\/(?:has-permission|create-role|list-roles|get-role|update-role|delete-role|list|create|update|delete|get-full-organization|set-active|get-active-member|get-active-member-role|check-slug|invite-member|accept-invitation|reject-invitation|cancel-invitation|get-invitation|list-invitations|list-user-invitations|list-members|update-member-role|remove-member|leave|create-team|update-team|remove-team|set-active-team|list-teams|list-user-teams|add-team-member|remove-team-member|list-team-members)|passkey\/(?:generate-register-options|verify-registration|generate-authenticate-options|verify-authentication|list-user-passkeys|delete-passkey|update-passkey)|sso\/(?:sign-in|callback\/[a-zA-Z0-9_-]+))$/;
 const maximumBodyBytes = 262144;
-const privateResponseKeys = new Set(["token", "sessiontoken", "accesstoken", "refreshtoken", "idtoken", "bearertoken", "privatemetadata", "authorization", "password", "passwordhash", "clientsecret", "apikey"]);
+const privateResponseKeys = new Set(["token", "sessiontoken", "accesstoken", "refreshtoken", "idtoken", "bearertoken", "privatemetadata", "authorization", "password", "passwordhash", "clientsecret", "privatekey", "encryptedprivatekey", "apikey"]);
 
 async function boundedRequestBody(request: Request): Promise<Uint8Array<ArrayBuffer> | null> {
 	const declaredLength = request.headers.get("content-length");
@@ -48,6 +48,16 @@ function browserResponse(value: unknown, depth = 0): unknown {
 	return Object.fromEntries(Object.entries(value).filter(([key]) => !privateResponseKeys.has(key.toLowerCase().replace(/[-_]/g, ""))).map(([key, entry]) => [key, browserResponse(entry, depth + 1)]));
 }
 
+/** Match Next's parsed-query serialization without changing repeated values or their per-key order. */
+function canonicalProxySearch(params: URLSearchParams): string {
+	const grouped: Record<string, string[]> = Object.create(null);
+	for (const [key, value] of params) (grouped[key] ??= []).push(value);
+	const canonical = new URLSearchParams();
+	// Object entry order also matches Next's ordering of integer-like query keys.
+	for (const [key, values] of Object.entries(grouped)) for (const value of values) canonical.append(key, value);
+	return canonical.toString();
+}
+
 /** A same-origin proxy keeps authentication cookies on your app's domain. Never expose proxySecret to a browser. */
 export function createAllAuthProxy(options: AllAuthProxyOptions) {
 	if (!/^[a-z][a-z0-9-]{1,47}$/.test(options.project) || !/^[a-f0-9]{64}$/.test(options.proxySecret)) throw new Error("Provide the project identifier and server-only AllAuth proxy secret.");
@@ -66,6 +76,8 @@ export function createAllAuthProxy(options: AllAuthProxyOptions) {
 	});
 	const send = async (request: Request, endpoint: string, method: "GET" | "POST", bytes: Uint8Array<ArrayBuffer>, selectedCookies?: string) => {
 		const target = new URL(`${remote.origin}/api/projects/${options.project}/auth/${endpoint}`);
+		// Sign and send the same query representation that Next ingress will verify.
+		target.search = canonicalProxySearch(target.searchParams);
 		const headers = new Headers();
 		for (const name of ["content-type", "user-agent", "accept"]) { const value = request.headers.get(name); if (value) headers.set(name, value); }
 		headers.set("origin", app.origin);
@@ -90,17 +102,31 @@ export function createAllAuthProxy(options: AllAuthProxyOptions) {
 		const failure = (error: string, status: number) => Response.json({ error: { message: error } }, { status, headers: { "cache-control": "no-store" } });
 		if (support && endpoint.startsWith("support/")) return support(request, endpoint);
 		if (!["GET", "POST"].includes(request.method) || !(exactPaths.has(endpoint) || pluginPath.test(endpoint))) return failure("This auth endpoint is not available through the app integration.", 404);
-		if (request.method === "POST" && (request.headers.get("origin") !== app.origin || request.headers.get("sec-fetch-site") === "cross-site")) return failure("A same-origin request is required.", 403);
+		const appleCallback = request.method === "POST" && endpoint === "callback/apple" && app.protocol === "https:" && request.headers.get("origin") === "https://appleid.apple.com" && request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase() === "application/x-www-form-urlencoded" && (request.headers.get("cookie") || "").split(";").some(pair => {
+			const split = pair.trim().indexOf("="); const name = pair.trim().slice(0, split).replace(/^__Secure-/, "");
+			return split > 0 && [`${prefix}state`, `${prefix}oauth_state`].includes(name) && pair.trim().slice(split + 1).length > 0;
+		});
+		if (request.method === "POST" && !appleCallback && (request.headers.get("origin") !== app.origin || request.headers.get("sec-fetch-site") === "cross-site")) return failure("A same-origin request is required.", 403);
 		let bytes: Uint8Array<ArrayBuffer> | null;
 		try { bytes = request.method === "GET" ? new Uint8Array() : await boundedRequestBody(request); }
 		catch { return failure("The request body could not be read.", 400); }
 		if (bytes === null) return failure("Request too large.", 413);
+		if (appleCallback) {
+			const form = new URLSearchParams(new TextDecoder().decode(bytes));
+			if (form.getAll("state").length !== 1 || !/^[A-Za-z0-9_-]{16,512}$/.test(form.get("state") || "") || !((form.getAll("code").length === 1 && form.get("code") && !form.has("error")) || (form.getAll("error").length === 1 && form.get("error") && !form.has("code")))) return failure("Invalid Apple callback.", 400);
+			// The native provider still validates signed state, nonce, code and token.
+		}
 		const ip = options.getClientIP?.(request) || "";
 		if (ip && !isIP(ip)) return failure("The hosting provider supplied an invalid client address.", 500);
 		try {
 			const upstream = await send(request, `${endpoint}${new URL(request.url).search}`, request.method as "GET" | "POST", bytes);
 			const resultHeaders = new Headers({ "cache-control": "no-store", "pragma": "no-cache", "x-content-type-options": "nosniff" });
 			for (const name of ["content-type", "location"]) { const value = upstream.headers.get(name); if (value) resultHeaders.set(name, value); }
+			const continuation = upstream.headers.get("location");
+			if (appleCallback && continuation) {
+				const redirect = new URL(continuation, remote.origin);
+				if (redirect.origin === remote.origin && redirect.pathname === `/api/projects/${options.project}/auth/callback/apple`) resultHeaders.set("location", `${app.origin}${new URL(request.url).pathname}${redirect.search}`);
+			}
 			for (const cookie of cookieHeaders(upstream)) resultHeaders.append("set-cookie", cookie);
 			if (upstream.headers.get("content-type")?.includes("application/json")) {
 				const body = await upstream.text();
