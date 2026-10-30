@@ -14,6 +14,7 @@ export function createAllAuthClient(
 	const path = proxyBasePath(basePath);
 	const origin =
 		typeof window === "undefined" ? "http://localhost" : window.location.origin;
+	const organization = organizationClient({ teams: { enabled: true } });
 	return createAuthClient({
 		baseURL: `${origin}${path}`,
 		fetchOptions: {
@@ -42,7 +43,7 @@ export function createAllAuthClient(
 		},
 		plugins: [
 			passkeyClient(),
-			organizationClient({ teams: { enabled: true } }),
+			{ ...organization, atomListeners: [...organization.atomListeners, { matcher: (path: string) => path === "/organization/accept-invitation", signal: "$listOrg" }] },
 			twoFactorClient({
 				onTwoFactorRedirect: ({ twoFactorMethods }) =>
 					onTwoFactorRedirect(twoFactorMethods),

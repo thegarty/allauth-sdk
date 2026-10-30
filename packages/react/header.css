@@ -175,6 +175,7 @@
 .allauth .allauth-member-invite > button { min-height: 40px; align-self: end; }
 .allauth-invitation-list { display: flex; flex-direction: column; gap: .625rem; max-width: 100%; margin: 0; padding: 0; list-style: none; }
 .allauth-invitation-item { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .75rem 0; border-bottom: 1px solid var(--allauth-border); }
+.allauth-invitation-target { padding: .875rem; border: 1px solid color-mix(in srgb, var(--allauth-accent) 35%, var(--allauth-border)); border-radius: .6rem; background: color-mix(in srgb, var(--allauth-accent) 5%, var(--allauth-background)); }
 .allauth-invitation-identity { display: flex; flex: 1; flex-direction: column; gap: .375rem; min-width: 0; }
 .allauth-invitation-identity strong { overflow-wrap: anywhere; font-size: .8125rem; font-weight: 550; }
 .allauth-invitation-meta { display: flex; align-items: center; gap: .5rem; color: var(--allauth-muted); font-size: .6875rem; }

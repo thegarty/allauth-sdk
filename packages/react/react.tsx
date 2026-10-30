@@ -22,6 +22,8 @@ import type { OrganizationHeaderProps } from "./header";
 import { Dialog } from "./dialog";
 import { AvatarUpload } from "./avatar-upload";
 import { addNativePasskey } from "./passkey";
+import { acceptInvitationAndEnter } from "./invitations";
+import type { InvitationSetup } from "./invitations";
 export { AvatarUpload } from "./avatar-upload";
 export { OrganizationProfile, OrganizationProfileModal } from "./organization-profile";
 export { AccountSettings } from "./account-settings";
@@ -1016,6 +1018,7 @@ function OrganizationControls({
 	const [error, setError] = useState("");
 	const [message, setMessage] = useState("");
 	const [invitations, setInvitations] = useState<Invitation[]>([]);
+	const [invitationSetups, setInvitationSetups] = useState<Record<string, InvitationSetup>>({});
 	const [invitationsLoading, setInvitationsLoading] = useState(true);
 	const [invitationsError, setInvitationsError] = useState("");
 	const loadInvitations = useCallback(async () => {
@@ -1173,15 +1176,12 @@ function OrganizationControls({
 											disabled={busy}
 											onClick={() =>
 												void run(
-													() =>
-														client.organization.acceptInvitation({
-															invitationId: invitation.id,
-														}),
+												async () => { await acceptInvitationAndEnter(client, invitation.id, { onSelect, onOrganizationChange, onCheckpoint: (setup) => setInvitationSetups((previous) => ({ ...previous, [invitation.id]: setup })) }, invitationSetups[invitation.id]); return { error: null }; },
 													"Invitation accepted.",
 												)
 											}
 										>
-											Accept
+											{invitationSetups[invitation.id] ? "Finish setup" : "Accept"}
 										</button>
 										<button
 											type="button"

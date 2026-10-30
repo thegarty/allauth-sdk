@@ -4,7 +4,7 @@
   "reconstructedHistory": true,
   "importedAt": "2026-10-30T01:38:34.868686+00:00",
   "sourceArchiveCatalog": "https://allauth.co/sdk/integrity.json",
-  "latestVersion": "1.3.0",
+  "latestVersion": "1.3.1",
   "releases": [
     {
       "version": "1.1.0",
@@ -664,6 +664,146 @@
           "path": "react.tsx",
           "sha256": "0bd6b57cadd4aca84ef95fd9dfe6c8dae7fd5f68be0ffa080d948e9813e1ae69",
           "bytes": 58969
+        },
+        {
+          "path": "styles.css",
+          "sha256": "c9ed62be7195e690dc7ceb5f5f5f68e530d7d9e42f4f5cd3eb2f2a9202caa3e8",
+          "bytes": 12601
+        },
+        {
+          "path": "ui.tsx",
+          "sha256": "d97dcbf3cd4813d31526e6ae3ff6d51bcc5d7ca542441005890d9e55aa9a83a8",
+          "bytes": 2870
+        }
+      ]
+    },
+    {
+      "version": "1.3.1",
+      "title": "AllAuth React SDK 1.3.1: explicit organisation invitation handoff",
+      "summary": "Preserves invitation intent in AccountSettings and verifies fresh membership before application callbacks.",
+      "notes": [
+        "Accepts an optional invitationId or a validated invitation query on the account page.",
+        "Keeps invitation acceptance explicit for the verified invited address and checks membership, active organisation and session before selection callbacks.",
+        "Supports retrying failed host setup without accepting an invitation twice, and opening an existing workspace from a closed invitation."
+      ],
+      "publishedAt": null,
+      "dateConfidence": "unknown",
+      "compatibility": "historical",
+      "upgradeUrl": "https://allauth.co/sdk/quickstart",
+      "changelogUrl": "https://allauth.co/releases/sdk-1-3-1",
+      "downloadUrl": "https://allauth.co/sdk/allauth-react-1.3.1.tgz",
+      "sha256": "ec1128184ff7ce13478d3cccad75e8258032b025ca16070c6af806b9a02c3f88",
+      "sourceUrl": "https://github.com/thegarty/allauth-sdk/tree/v1.3.1/packages/react",
+      "provenance": [
+        {
+          "kind": "archive-diff",
+          "details": "Reconstructed from the immutable 1.3.0 and 1.3.1 archives. The original publication date was not retained; archive file timestamps are not treated as release dates.",
+          "files": [
+            "README.md",
+            "invitations.ts",
+            "account-settings.tsx",
+            "client.ts",
+            "react.tsx"
+          ]
+        }
+      ],
+      "filename": "allauth-react-1.3.1.tgz",
+      "archivePath": "releases/archives/allauth-react-1.3.1.tgz",
+      "checksumPath": "releases/checksums/allauth-react-1.3.1.tgz.sha256",
+      "tag": "v1.3.1",
+      "githubReleaseUrl": "https://github.com/thegarty/allauth-sdk/releases/tag/v1.3.1",
+      "packagePrivate": true,
+      "sdkLicense": null,
+      "sourceFiles": [
+        {
+          "path": "BETTER_AUTH_UI.md",
+          "sha256": "95fe964e42b3e8bcb4e2e925930efd270e47ea1b205325c316343a513afb937a",
+          "bytes": 4823
+        },
+        {
+          "path": "README.md",
+          "sha256": "01ce201a1d6a7f464c30554d72116230af790cd93bd49588837c129ce5dbcbbf",
+          "bytes": 2707
+        },
+        {
+          "path": "account-settings.tsx",
+          "sha256": "e4a0d6bcc387e208e9ef1ce1dc9a74f202b8954cb069eb9408d16b0240a6bc0a",
+          "bytes": 10915
+        },
+        {
+          "path": "allauth-wordmark.tsx",
+          "sha256": "33a358d83663d9fe9cd5da7789302b0b5005e633d7cdbacad07a595b8068a3cf",
+          "bytes": 2445
+        },
+        {
+          "path": "avatar-upload.tsx",
+          "sha256": "b2101bee74c59dd5db6c66321633fd94bd14c3f9e42662b387abd4854a13b58e",
+          "bytes": 6638
+        },
+        {
+          "path": "branding.ts",
+          "sha256": "86699f8e7006c9c93bd0f36f2177a90e7acb1d5fc3276f7db5609fb1560c4d62",
+          "bytes": 5287
+        },
+        {
+          "path": "client.ts",
+          "sha256": "0d37b13d3ca7bf0584dc7c2c4fd700dfb9be54a7d46c33d221ba7959be125f58",
+          "bytes": 1750
+        },
+        {
+          "path": "dialog.tsx",
+          "sha256": "40be96e5b88ecf2a127a7c64051134b7dac676698f3fb0438b841209ad05681e",
+          "bytes": 4447
+        },
+        {
+          "path": "google-icon.ts",
+          "sha256": "da34e77b4cfecb5fbeaabb8dbb714ca902d2ea48ff6e12df322d086dbda7e946",
+          "bytes": 45114
+        },
+        {
+          "path": "header.css",
+          "sha256": "cd4cf6dbbc2a8fd0f33efa81ae2550fb5ec9f788ad6b12663b2e7c829e1963e9",
+          "bytes": 17354
+        },
+        {
+          "path": "header.tsx",
+          "sha256": "46d1979e4c23967df7b4090b3959e8a848c3c1c034a6820e138cc54273ded5dd",
+          "bytes": 13525
+        },
+        {
+          "path": "helpers.ts",
+          "sha256": "20d1ff65bb3a08c2b8f87b30e5b7a4caffc1451fbd1022fd285f1be31de93a50",
+          "bytes": 3215
+        },
+        {
+          "path": "invitations.ts",
+          "sha256": "f267179803e60332aac990a7410fc2f60b3c39a2ab236dca1d55444e9e756fad",
+          "bytes": 3957
+        },
+        {
+          "path": "next.ts",
+          "sha256": "dc97fdede4493c9ee158d49ab6cf30ac3e9d8959b95ad8fe7382cc01c6efed57",
+          "bytes": 8388
+        },
+        {
+          "path": "organization-profile.tsx",
+          "sha256": "d5ba87e06ff5632c47816b74240e0f75f6620a9a1f8223472eeae0fbb3c496d1",
+          "bytes": 22961
+        },
+        {
+          "path": "package.json",
+          "sha256": "ddfe4d3e265c7a0aeb90a1dc7ab93fa826cf338ee9f3c198495020d3d7a42db5",
+          "bytes": 1278
+        },
+        {
+          "path": "passkey.ts",
+          "sha256": "025c9c047683300457a0e453e476d2cd3424521ccd7208533d62162cef2b05c4",
+          "bytes": 4435
+        },
+        {
+          "path": "react.tsx",
+          "sha256": "5535bce61dd3e917e7b4e5b84a5ed9c69406c2de0ad350775033be92e933ff2b",
+          "bytes": 59378
         },
         {
           "path": "styles.css",

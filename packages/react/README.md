@@ -1,11 +1,11 @@
-# AllAuth React SDK 1.3.0
+# AllAuth React SDK 1.3.1
 
 A portable React SDK backed by the app's same-origin AllAuth proxy. Install the
 versioned tarball plus its declared peers, and import `@allauth/react/styles.css`.
 React and React DOM must have compatible versions. No Next.js dependency is
 required for the React components.
 
-SDK 1.3.0 adds opt-in `UserButton variant="avatar" managementMode="modal"` and
+SDK 1.3.1 adds opt-in `UserButton variant="avatar" managementMode="modal"` and
 `OrganizationSwitcher variant="compact" managementMode="modal"`. Their existing
 page/card defaults remain available.
 
@@ -27,7 +27,7 @@ remain subject to native server permissions, and the SDK never supplies platform
 administrator authority to an application.
 
 
-SDK 1.3.0 adds `AccountSettings` with native Profile, Security and Organisations
+SDK 1.3.1 adds `AccountSettings` with native Profile, Security and Organisations
 tabs. It shares the same profile panels as `UserProfileModal`, including a photo
 picker. `profileImageUpload` is an optional public capability (false on older
 servers). Upload prepares an image URL draft; the user's explicit Save profile
@@ -36,3 +36,12 @@ applies it. Browser sessions remain separate sign-ins and are never deduplicated
 Dialog headers and navigation stay fixed while the main pane scrolls. Passkey
 setup checks browser support and presents native cancellation, recent-login,
 expired-challenge and verification errors without bypassing security checks.
+
+
+SDK 1.3.1 preserves email invitation intent on `AccountSettings` with optional
+`invitationId` or the account page's validated `?invitation=`. Accept remains an
+explicit native action for the verified invited email. Fresh membership, active
+organisation and session are checked before host `onSelect`/selection callbacks;
+failed application setup retries without accepting twice. Existing members can
+use Open workspace when an old invitation is already closed. Hosts must preserve
+the same relative `returnTo` through sign-in and sign-up.

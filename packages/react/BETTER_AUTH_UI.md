@@ -3,7 +3,7 @@
 The platform console uses the official [Better Auth UI shadcn registry](https://better-auth-ui.com/docs/shadcn/integrations/nextjs), with its MIT attribution retained in `components/better-auth-ui`. The portable SDK provides an optional `@allauth/react/ui` provider for consumers that install their own official registry components. It contains no Next.js import, application path alias, server credential, or dependency on the console's component directory.
 
 For the shared widgets with managed application branding, use the default
-`AllAuthProvider`, `SignIn` and `SignUp` from SDK **1.3.0** as shown in
+`AllAuthProvider`, `SignIn` and `SignUp` from SDK **1.3.1** as shown in
 [INTEGRATION.md](../INTEGRATION.md). That provider automatically loads the public
 application settings through the same-origin SDK configuration endpoint.
 **Configure → Application → Settings** controls the name, light/dark logos,
