@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "package": "@allauth/react",
+  "reconstructedHistory": true,
+  "importedAt": "2026-10-30T01:38:34.868686+00:00",
+  "sourceArchiveCatalog": "https://allauth.co/sdk/integrity.json",
+  "latestVersion": "1.1.0",
+  "releases": [
+    {
+      "version": "1.1.0",
+      "title": "AllAuth React SDK 1.1.0: portable authentication and managed branding",
+      "summary": "The earliest retained allowlisted archive contains portable cookie-based React authentication and a same-origin app proxy.",
+      "notes": [
+        "Includes AllAuthProvider, SignIn, SignUp, password recovery, UserButton, UserProfile and OrganizationSwitcher components backed by native sessions.",
+        "Loads public application branding and authentication capabilities through the app's same-origin configuration endpoint.",
+        "Provides an optional Better Auth UI integration and the Next.js server proxy without requiring Next.js for the portable React components."
+      ],
+      "publishedAt": null,
+      "dateConfidence": "unknown",
+      "compatibility": "historical",
+      "upgradeUrl": "https://allauth.co/sdk/quickstart",
+      "changelogUrl": "https://allauth.co/releases/sdk-1-1-0",
+      "downloadUrl": "https://allauth.co/sdk/allauth-react-1.1.0.tgz",
+      "sha256": "5bb320f6292e00866ce205dea22a79197675066919e1fcf2c5ebe1e61f63cc67",
+      "sourceUrl": "https://github.com/thegarty/allauth-sdk/tree/v1.1.0/packages/react",
+      "provenance": [
+        {
+          "kind": "archive",
+          "details": "Reconstructed from the earliest retained allowlisted SDK archive, 1.1.0. The original publication date was not retained.",
+          "files": [
+            "react.tsx",
+            "branding.ts",
+            "client.ts",
+            "next.ts",
+            "ui.tsx",
+            "BETTER_AUTH_UI.md"
+          ]
+        }
+      ],
+      "filename": "allauth-react-1.1.0.tgz",
+      "archivePath": "releases/archives/allauth-react-1.1.0.tgz",
+      "checksumPath": "releases/checksums/allauth-react-1.1.0.tgz.sha256",
+      "tag": "v1.1.0",
+      "githubReleaseUrl": "https://github.com/thegarty/allauth-sdk/releases/tag/v1.1.0",
+      "packagePrivate": true,
+      "sdkLicense": null,
+      "sourceFiles": [
+        {
+          "path": "BETTER_AUTH_UI.md",
+          "sha256": "b8290ecf8bd70a5f00c660d49d795a0eb576c7efc6a521469a15674109159254",
+          "bytes": 4823
+        },
+        {
+          "path": "branding.ts",
+          "sha256": "6587754281f940367e13b3a4760ad553a58f1610c925f4a2ee9789bcd6e7f5b7",
+          "bytes": 5079
+        },
+        {
+          "path": "client.ts",
+          "sha256": "f9a3aeb0c437c01fc795332a4b1e8a4def84dee286a152011f4c5fd9fcd64b65",
+          "bytes": 1564
+        },
+        {
+          "path": "google-icon.ts",
+          "sha256": "da34e77b4cfecb5fbeaabb8dbb714ca902d2ea48ff6e12df322d086dbda7e946",
+          "bytes": 45114
+        },
+        {
+          "path": "helpers.ts",
+          "sha256": "6ca4e6c94d4553491c7d23ff426483ef8342cf1cc22dcfac9b6d492760393b97",
+          "bytes": 2705
+        },
+        {
+          "path": "next.ts",
+          "sha256": "2bac3bb5d70213fae13c6d85607dcfff93c80ede9a980293343ce850cd157929",
+          "bytes": 8374
+        },
+        {
+          "path": "package.json",
+          "sha256": "6934dd878949b23fc95404a4d6f05723036378e07c73d89e56251c20d32f7444",
+          "bytes": 1032
+        },
+        {
+          "path": "react.tsx",
+          "sha256": "e2df6dde5e9f9bb09810899cfcc531bedc9dda4cee517b7432ceb26d930a60df",
+          "bytes": 50886
+        },
+        {
+          "path": "styles.css",
+          "sha256": "d6068d478ac63637c6d2b80ba37c14dfb9c63b0676530ced00659e4cb47a5f18",
+          "bytes": 12320
+        },
+        {
+          "path": "ui.tsx",
+          "sha256": "d97dcbf3cd4813d31526e6ae3ff6d51bcc5d7ca542441005890d9e55aa9a83a8",
+          "bytes": 2870
+        }
+      ]
+    }
+  ]
+}
