@@ -1,3 +1,4 @@
+.allauth [hidden] { display: none !important; }
 /* Opt-in native account and organization chrome. Legacy cards retain their appearance. */
 .allauth-header-menu{position:relative;display:inline-flex;align-items:center;max-width:100%}
 .allauth button.allauth-header-trigger{display:inline-flex;align-items:center;gap:.6rem;min-height:2.4rem;padding:.25rem .45rem;border:1px solid transparent;background:transparent;color:var(--allauth-foreground);font-weight:500;border-radius:.55rem}
@@ -196,8 +197,9 @@
 .allauth .allauth-device-details > summary { padding: .75rem 0 0; color: var(--allauth-muted); font-size: .6875rem; font-weight: 500; }
 .allauth .allauth-device-details p { margin-top: .375rem; overflow-wrap: anywhere; font-size: .6875rem; }
 .allauth-account-settings { width: 100%; min-width: 0; }
-.allauth-account-tabs { display: flex; gap: .5rem; min-width: 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--allauth-border); overflow-x: auto; }
+.allauth-account-tabs { display: flex; gap: .5rem; min-width: 0; margin-bottom: 1.5rem; border-bottom: 1px solid var(--allauth-border); overflow-x: auto; overflow-y: hidden; }
 .allauth .allauth-account-tabs > button { flex: none; min-height: 44px; margin-bottom: -1px; padding: .75rem 1rem; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--allauth-muted); font-size: .875rem; font-weight: 500; }
+.allauth .allauth-account-tabs > button:focus-visible { outline-offset: -3px; }
 .allauth .allauth-account-tabs > button[aria-selected=true] { border-bottom-color: var(--allauth-accent); color: var(--allauth-accent); }
 .allauth-account-panel { min-width: 0; padding: 1.5rem; border: 1px solid var(--allauth-border); border-radius: .75rem; background: var(--allauth-background); }
 .allauth-account-organizations { min-width: 0; }
