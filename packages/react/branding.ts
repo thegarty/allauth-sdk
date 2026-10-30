@@ -64,10 +64,11 @@ export function publicBranding(value: unknown): AllAuthPublicBranding | null {
 export function publicSDKConfiguration(value: unknown) {
 	if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Sign-in options could not be loaded.");
 	const fields = value as Record<string, unknown>;
-	const { emailPassword, google, organizations, twoFactor } = fields;
+	const { emailPassword, google, organizations, twoFactor, profileImageUpload } = fields;
 	if (typeof emailPassword !== "boolean" || typeof google !== "boolean" || typeof organizations !== "boolean" || typeof twoFactor !== "boolean") throw new Error("Sign-in options could not be loaded.");
+	if (profileImageUpload !== undefined && typeof profileImageUpload !== "boolean") throw new Error("Sign-in options could not be loaded.");
 	return {
-		capabilities: { emailPassword, google, organizations, twoFactor },
+		capabilities: { emailPassword, google, organizations, twoFactor, profileImageUpload: profileImageUpload === true },
 		branding: publicBranding(fields.branding),
 	};
 }

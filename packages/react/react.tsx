@@ -20,7 +20,12 @@ import { createAllAuthClient } from "./client";
 import { Avatar, AvatarUserButton, CompactOrganizationSwitcher, safeAvatar } from "./header";
 import type { OrganizationHeaderProps } from "./header";
 import { Dialog } from "./dialog";
+import { AvatarUpload } from "./avatar-upload";
+import { addNativePasskey } from "./passkey";
+export { AvatarUpload } from "./avatar-upload";
 export { OrganizationProfile, OrganizationProfileModal } from "./organization-profile";
+export { AccountSettings } from "./account-settings";
+export type { AccountSettingsProps } from "./account-settings";
 export type { HeaderOrganization, OrganizationHeaderProps } from "./header";
 import type { AllAuthClient } from "./client";
 import {
@@ -37,6 +42,8 @@ export type AllAuthCapabilities = {
 	google: boolean;
 	organizations: boolean;
 	twoFactor: boolean;
+	/** True only when the native server has profile image storage configured. */
+	profileImageUpload?: boolean;
 };
 /** Optional application branding shared by the embedded authentication forms. */
 export type AllAuthBranding = { name?: string; logo?: ReactNode };
@@ -258,7 +265,7 @@ function SecuritySettings({ user }: { user: { id: string; twoFactorEnabled?: boo
 	const run = async (action: () => Promise<void>) => { setBusy(true); setError(""); setMessage(""); try { await action(); } catch (cause) { setError(authError(cause)); } finally { setPassword(""); setBusy(false); } };
 	const begin = (event: FormEvent) => { event.preventDefault(); void run(async () => { const result = await client.twoFactor.enable(password ? { password } : {}); if (result.error) throw result.error; if (!result.data || result.data.method !== "totp" || !result.data.totpURI || !result.data.backupCodes) throw new Error("Authenticator setup is unavailable."); setSetup(result.data); }); };
 	const verify = (event: FormEvent) => { event.preventDefault(); void run(async () => { const result = await client.twoFactor.verifyTotp({ code: code.trim(), trustDevice: false }); if (result.error) throw result.error; setCode(""); setSetup(undefined); setMessage("Two-factor authentication enabled. Keep your backup codes in a safe place."); await client.getSession(); }); };
-	return <div className="allauth-stack"><Notice message={error} error /><Notice message={message} />{capabilities?.twoFactor && <details><summary>Two-factor authentication {user.twoFactorEnabled ? "· Enabled" : "· Not enabled"}</summary><div className="allauth-stack">{setup ? <><p>Add this account to your authenticator before verifying the first code. Save the backup codes before continuing.</p><Field label="Authenticator setup URI" id={`${id}-uri`}><input id={`${id}-uri`} value={setup.totpURI} readOnly /></Field><Field label="Manual setup key" id={`${id}-secret`}><input id={`${id}-secret`} value={new URL(setup.totpURI).searchParams.get("secret") || ""} readOnly /></Field><pre style={{ overflowWrap: "anywhere", whiteSpace: "pre-wrap" }}>{setup.backupCodes.join("\n")}</pre><form className="allauth-stack" onSubmit={verify}><Field label="Authenticator code" id={`${id}-code`}><input id={`${id}-code`} value={code} onChange={(event) => setCode(event.target.value)} autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" required disabled={busy} /></Field><button type="submit" disabled={busy}>Verify and enable</button></form></> : <form className="allauth-stack" onSubmit={user.twoFactorEnabled ? (event) => { event.preventDefault(); void run(async () => { const result = await client.twoFactor.disable(password ? { password } : {}); if (result.error) throw result.error; setMessage("Two-factor authentication disabled."); await client.getSession(); }); } : begin}><Field label="Current password (if you have one)" id={`${id}-factor-password`}><input id={`${id}-factor-password`} type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} disabled={busy} /></Field><button type="submit" disabled={busy}>{user.twoFactorEnabled ? "Disable two-factor authentication" : "Set up authenticator"}</button></form>}</div></details>}<details><summary>Passkeys</summary><div className="allauth-stack"><p className="allauth-muted">Use a device or security key supported by your browser.</p><button type="button" disabled={busy} onClick={() => void run(async () => { const result = await client.passkey.addPasskey({ name: "My passkey" }); if (result.error) throw result.error; setMessage("Passkey added."); await passkeys.refetch(); })}>Add a passkey</button>{passkeys.isPending ? <Loading /> : passkeys.error ? <Notice message={authError(passkeys.error)} error /> : passkeys.data?.map((passkey) => <div key={passkey.id} className="allauth-inline"><span>{passkey.name || "Passkey"}</span><button type="button" className="allauth-secondary" disabled={busy} onClick={() => void run(async () => { const result = await client.passkey.deletePasskey({ id: passkey.id }); if (result.error) throw result.error; setMessage("Passkey removed."); await passkeys.refetch(); })}>Remove</button></div>)}</div></details></div>;
+	return <div className="allauth-stack"><Notice message={error} error /><Notice message={message} />{capabilities?.twoFactor && <details className="allauth-security-detail"><summary>Two-factor authentication {user.twoFactorEnabled ? "· Enabled" : "· Not enabled"}</summary><div className="allauth-stack">{setup ? <><p>Add this account to your authenticator before verifying the first code. Save the backup codes before continuing.</p><Field label="Authenticator setup URI" id={`${id}-uri`}><input id={`${id}-uri`} value={setup.totpURI} readOnly /></Field><Field label="Manual setup key" id={`${id}-secret`}><input id={`${id}-secret`} value={new URL(setup.totpURI).searchParams.get("secret") || ""} readOnly /></Field><pre style={{ overflowWrap: "anywhere", whiteSpace: "pre-wrap" }}>{setup.backupCodes.join("\n")}</pre><form className="allauth-stack allauth-security-form" onSubmit={verify}><Field label="Authenticator code" id={`${id}-code`}><input id={`${id}-code`} value={code} onChange={(event) => setCode(event.target.value)} autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" required disabled={busy} /></Field><button type="submit" className="allauth-compact-button" disabled={busy}>Verify and enable</button></form></> : <form className="allauth-stack allauth-security-form" onSubmit={user.twoFactorEnabled ? (event) => { event.preventDefault(); void run(async () => { const result = await client.twoFactor.disable(password ? { password } : {}); if (result.error) throw result.error; setMessage("Two-factor authentication disabled."); await client.getSession(); }); } : begin}><Field label="Current password (if you have one)" id={`${id}-factor-password`}><input id={`${id}-factor-password`} type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} disabled={busy} /></Field><button type="submit" className="allauth-compact-button" disabled={busy}>{user.twoFactorEnabled ? "Disable two-factor authentication" : "Set up authenticator"}</button></form>}</div></details>}<details className="allauth-security-detail"><summary>Passkeys</summary><div className="allauth-stack"><p className="allauth-muted">Use a device or security key supported by your browser.</p><button type="button" className="allauth-compact-button" disabled={busy} onClick={() => void run(async () => { await addNativePasskey(client); setMessage("Passkey added."); await passkeys.refetch(); })}>Add a passkey</button>{passkeys.isPending ? <Loading /> : passkeys.error ? <Notice message={authError(passkeys.error)} error /> : passkeys.data?.map((passkey) => <div key={passkey.id} className="allauth-passkey-row"><span>{passkey.name || "Passkey"}</span><button type="button" className="allauth-secondary allauth-compact-button" disabled={busy} onClick={() => void run(async () => { const result = await client.passkey.deletePasskey({ id: passkey.id }); if (result.error) throw result.error; setMessage("Passkey removed."); await passkeys.refetch(); })}>Remove</button></div>)}</div></details></div>;
 }
 
 type Appearance = { className?: string; style?: CSSProperties };
@@ -693,6 +700,23 @@ export function UserButton({
 	);
 }
 
+function deviceName(userAgent?: string): string {
+	const agent = userAgent ?? "";
+	const browser = /Edg(?:e|A|iOS)?\//.test(agent) ? "Edge"
+		: /(?:OPR|Opera)\//.test(agent) ? "Opera"
+			: /SamsungBrowser\//.test(agent) ? "Samsung Internet"
+				: /(?:Chrome|CriOS)\//.test(agent) ? "Chrome"
+					: /(?:Firefox|FxiOS)\//.test(agent) ? "Firefox"
+						: /Safari\//.test(agent) ? "Safari" : "";
+	const system = /iPhone|iPad|iPod/.test(agent) ? "iOS"
+		: /Android/.test(agent) ? "Android"
+			: /CrOS/.test(agent) ? "ChromeOS"
+				: /Windows/.test(agent) ? "Windows"
+					: /Macintosh|Mac OS X/.test(agent) ? "macOS"
+						: /Linux/.test(agent) ? "Linux" : "";
+	return browser && system ? `${browser} on ${system}` : browser || system || "Signed-in device";
+}
+
 function Sessions({ signInUrl }: { signInUrl: string }) {
 	const { basePath, client } = useAllAuth();
 	const [sessions, setSessions] = useState<SafeSession[]>([]);
@@ -766,9 +790,9 @@ function Sessions({ signInUrl }: { signInUrl: string }) {
 		}
 	}
 	return (
-		<section className="allauth-stack">
+		<section className="allauth-stack allauth-profile-section allauth-sessions">
 			<div className="allauth-row">
-				<h3>Signed-in devices</h3>
+				<h3>Browser sessions</h3>
 				<button
 					type="button"
 					className="allauth-secondary"
@@ -778,32 +802,24 @@ function Sessions({ signInUrl }: { signInUrl: string }) {
 					Refresh
 				</button>
 			</div>
+			<p className="allauth-muted">Each sign-in creates a browser session. Different browsers, profiles or repeated sign-ins on the same computer can appear separately.</p>
 			<Notice message={error} error />
 			{loading ? (
 				<Loading />
 			) : sessions.length ? (
-				<ul className="allauth-list">
+				<ul className="allauth-list allauth-device-list">
 					{sessions.map((session) => (
 						<li key={session.id}>
 							<div>
-								<strong>
-									{session.id === currentId
-										? "This session"
-										: "Signed-in device"}
-								</strong>
-								<p className="allauth-muted">
-									{session.userAgent || "Device details unavailable"}
-								</p>
-								{session.ipAddress && (
-									<p className="allauth-muted">{session.ipAddress}</p>
-								)}
+								<div className="allauth-device-identity"><strong>{deviceName(session.userAgent)}</strong><span className="allauth-badge">{session.id === currentId ? "This browser session" : "Other sign-in"}</span></div>
 								<p className="allauth-muted">
 									Signed in {new Date(session.createdAt).toLocaleString()}
 								</p>
+								<details className="allauth-device-details"><summary>Device details</summary><p className="allauth-muted">{session.userAgent || "Device details unavailable"}</p>{session.ipAddress && <p className="allauth-muted">IP address: {session.ipAddress}</p>}</details>
 							</div>
 							<button
 								type="button"
-								className="allauth-secondary"
+								className="allauth-secondary allauth-compact-button"
 								disabled={busy}
 								onClick={() => setSelected(session)}
 							>
@@ -850,6 +866,7 @@ function ProfileForms({ user, section = "all", onUpdated }: { user: { name: stri
  const [name, setName] = useState(user.name); const [image, setImage] = useState(user.image || ""); const [editing, setEditing] = useState(section === "all");
  const [currentPassword, setCurrentPassword] = useState(""); const [newPassword, setNewPassword] = useState(""); const [confirmPassword, setConfirmPassword] = useState("");
  const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [message, setMessage] = useState("");
+ const [avatarBusy, setAvatarBusy] = useState(false);
  async function run(action: () => Promise<{ error: unknown }>, success: string, profile = false) {
   setBusy(true); setError(""); setMessage("");
   try { const response = await action(); if (response.error) throw response.error; setMessage(success); setCurrentPassword(""); setNewPassword(""); setConfirmPassword(""); if (profile) { await client.getSession({ query: { disableCookieCache: true } }); setEditing(false); await onUpdated?.(); } }
@@ -858,18 +875,18 @@ function ProfileForms({ user, section = "all", onUpdated }: { user: { name: stri
  return <><Notice message={error} error/><Notice message={message}/>{section !== "security" && <>
   {section === "profile" && <div className="allauth-profile-summary"><div className="allauth-profile-row"><span>Profile</span><div className="allauth-profile-identity"><Avatar name={user.name || user.email} image={user.image}/><strong>{user.name || user.email}</strong></div><button className="allauth-text-button" type="button" onClick={() => setEditing(value => !value)}>{editing ? "Cancel update" : "Update profile"}</button></div><div className="allauth-profile-row"><span>Email address</span><div>{user.email} <span className="allauth-badge">{user.emailVerified ? "Verified" : "Unverified"}</span></div></div></div>}
   {editing && <form className="allauth-stack allauth-profile-edit" onSubmit={event => { event.preventDefault(); if (image.trim() && !safeAvatar(image.trim())) { setError("Use a public HTTPS avatar URL, or leave it blank."); return; } void run(() => client.updateUser({ name: name.trim(), image: image.trim() || null }), "Profile updated.", true); }}>
-   <h3>Update profile</h3><Field label="Name" id={`${id}-name`}><input id={`${id}-name`} required maxLength={200} autoComplete="name" value={name} onChange={event => setName(event.target.value)} disabled={busy}/></Field>
-   <Field label="Avatar image URL (optional)" id={`${id}-image`}><input id={`${id}-image`} type="url" maxLength={2048} placeholder="https://example.com/photo.jpg" value={image} onChange={event => setImage(event.target.value)} disabled={busy}/></Field>
+   <h3>Update profile</h3><AvatarUpload name={name || user.email} image={image} onChange={value => setImage(value || "")} disabled={busy} onBusyChange={setAvatarBusy}/><Field label="Name" id={`${id}-name`}><input id={`${id}-name`} required maxLength={200} autoComplete="name" value={name} onChange={event => setName(event.target.value)} disabled={busy || avatarBusy}/></Field>
+   <details className="allauth-avatar-advanced"><summary>Use an image URL</summary><Field label="Avatar image URL (optional)" id={`${id}-image`}><input id={`${id}-image`} type="url" maxLength={2048} placeholder="https://example.com/photo.jpg" value={image} onChange={event => setImage(event.target.value)} disabled={busy || avatarBusy}/></Field></details>
    {section === "all" && <p>{user.email} <span className="allauth-badge">{user.emailVerified ? "Verified" : "Unverified"}</span></p>}
-   <button type="submit" disabled={busy}>{busy ? "Saving…" : "Save profile"}</button>
+   <button type="submit" disabled={busy || avatarBusy}>{busy ? "Saving…" : "Save profile"}</button>
   </form>}
   {!user.emailVerified && <button type="button" className="allauth-secondary" disabled={busy} onClick={() => void run(() => client.sendVerificationEmail({ email: user.email, callbackURL: appCallback(afterSignInUrl, window.location.origin) }), "Verification email requested. Check your inbox.")}>Verify email address</button>}
- </>}{section !== "profile" && <form className="allauth-stack allauth-profile-section" onSubmit={event => { event.preventDefault(); if (newPassword !== confirmPassword) { setError("New passwords must match."); return; } void run(() => client.changePassword({ currentPassword, newPassword, revokeOtherSessions: true }), "Password changed. Other sessions have been ended."); }}>
-  <h3>Change password</h3><Field label="Current password" id={`${id}-current`}><input id={`${id}-current`} type="password" required autoComplete="current-password" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} disabled={busy}/></Field>
+ </>}{section !== "profile" && <details className="allauth-security-detail"><summary>Password</summary><form className="allauth-stack allauth-security-form" aria-label="Change password" onSubmit={event => { event.preventDefault(); if (newPassword !== confirmPassword) { setError("New passwords must match."); return; } void run(() => client.changePassword({ currentPassword, newPassword, revokeOtherSessions: true }), "Password changed. Other sessions have been ended."); }}>
+  <Field label="Current password" id={`${id}-current`}><input id={`${id}-current`} type="password" required autoComplete="current-password" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} disabled={busy}/></Field>
   <Field label="New password" id={`${id}-new`}><input id={`${id}-new`} type="password" required minLength={12} maxLength={128} autoComplete="new-password" value={newPassword} onChange={event => setNewPassword(event.target.value)} disabled={busy}/></Field>
   <Field label="Confirm new password" id={`${id}-confirm`}><input id={`${id}-confirm`} type="password" required minLength={12} maxLength={128} autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} disabled={busy}/></Field>
-  <button type="submit" disabled={busy}>{busy ? "Saving…" : "Change password"}</button>
- </form>}</>;
+  <button type="submit" className="allauth-compact-button" disabled={busy}>{busy ? "Saving…" : "Change password"}</button>
+ </form></details>}</>;
 }
 
 function ConnectedAccounts() {

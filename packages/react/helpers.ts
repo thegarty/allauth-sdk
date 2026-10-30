@@ -24,15 +24,19 @@ export function appCallback(value: string, origin: string): string {
 	return new URL(appPath(value), origin).href;
 }
 
+/** Read only public message fields, including native proxy error wrappers. */
 export function authError(error: unknown): string {
-	if (
-		error &&
-		typeof error === "object" &&
-		"message" in error &&
-		typeof error.message === "string"
-	)
-		return error.message;
-	return "The request could not be completed. Please try again.";
+	const seen = new Set<object>();
+	const message = (value: unknown, depth = 0): string | undefined => {
+		if (depth > 4) return;
+		if (typeof value === "string" && value.trim()) return value.trim().slice(0, 1000);
+		if (!value || typeof value !== "object" || seen.has(value)) return;
+		seen.add(value);
+		const fields = value as Record<string, unknown>;
+		if (typeof fields.message === "string" && fields.message.trim()) return fields.message.trim().slice(0, 1000);
+		return message(fields.error, depth + 1) ?? message(fields.cause, depth + 1);
+	};
+	return message(error) ?? "The request could not be completed. Please try again.";
 }
 
 export type SafeSession = {
