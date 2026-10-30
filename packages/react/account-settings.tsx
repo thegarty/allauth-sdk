@@ -7,6 +7,7 @@ import type { HeaderOrganization, OrganizationHeaderProps } from "./header";
 import { appPath, authError } from "./helpers";
 import { acceptInvitationAndEnter, enterInvitationOrganization } from "./invitations";
 import type { InvitationSetup } from "./invitations";
+import { safeAuthReturnTo, withAuthReturnTo } from "./auth-return";
 
 type AccountSection = "profile" | "security" | "organizations";
 type UserInvitation = { id: string; organizationId: string; organizationName: string; role: string; status: string };
@@ -98,8 +99,7 @@ export function AccountSettings({ initialSection = "profile", invitationId, onUp
 	const signInPath = appPath(signInUrl ?? context.signInUrl);
 	const destination = new URL(returnPath, "https://app.invalid");
 	if (intent) destination.searchParams.set("invitation", intent);
-	const signInLink = new URL(signInPath, "https://app.invalid");
-	if (intent) signInLink.searchParams.set("returnTo", destination.pathname + destination.search);
+	const signInLink = withAuthReturnTo(signInPath, intent ? safeAuthReturnTo(destination.pathname + destination.search, context.basePath) : undefined);
 	const id = useId();
 	const navigation = useRef<HTMLElement>(null);
 	const sections: { id: AccountSection; label: string }[] = [{ id: "profile", label: "Profile" }, { id: "security", label: "Security" }, ...(context.capabilities?.organizations ? [{ id: "organizations" as const, label: "Organisations" }] : [])];
@@ -114,7 +114,7 @@ export function AccountSettings({ initialSection = "profile", invitationId, onUp
 			navigation.current?.querySelector<HTMLButtonElement>(`[data-section="${sections[next].id}"]`)?.focus();
 		}}>{sections.map((entry) => <button key={entry.id} id={`${id}-${entry.id}-tab`} type="button" role="tab" data-section={entry.id} aria-selected={selected === entry.id} aria-controls={`${id}-panel`} tabIndex={selected === entry.id ? 0 : -1} onClick={() => setSection(entry.id)}>{entry.label}</button>)}</nav>
 		<div className="allauth-account-panel" id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-${selected}-tab`} tabIndex={0}>
-			{session.isPending ? <p role="status">Loading account…</p> : session.error ? <p className="allauth-notice allauth-error" role="alert">{authError(session.error)}</p> : !session.data ? <p><a href={signInLink.pathname + signInLink.search}>Sign in</a> {intent ? "with the email address that received the invitation to review it." : "to manage your account."}</p> : selected === "organizations" ? <AccountOrganizations key={session.data.user.id} invitationId={intent} hideCreate={hideCreate} onSelect={onSelect} onCreate={onCreate} onOrganizationChange={onOrganizationChange}/> : <UserProfile section={selected} embedded signInUrl={signInUrl} onUpdated={onUpdated}/>}
+			{session.isPending ? <p role="status">Loading account…</p> : session.error ? <p className="allauth-notice allauth-error" role="alert">{authError(session.error)}</p> : !session.data ? <p><a href={signInLink}>Sign in</a> {intent ? "with the email address that received the invitation to review it." : "to manage your account."}</p> : selected === "organizations" ? <AccountOrganizations key={session.data.user.id} invitationId={intent} hideCreate={hideCreate} onSelect={onSelect} onCreate={onCreate} onOrganizationChange={onOrganizationChange}/> : <UserProfile section={selected} embedded signInUrl={signInUrl} onUpdated={onUpdated}/>}
 		</div>
 	</section>;
 }

@@ -22,6 +22,8 @@ import type { OrganizationHeaderProps } from "./header";
 import { Dialog } from "./dialog";
 import { AvatarUpload } from "./avatar-upload";
 import { addNativePasskey } from "./passkey";
+import { useAuthReturnTo, withAuthReturnTo } from "./auth-return";
+export { safeAuthReturnTo, resolveAuthReturnTo, withAuthReturnTo, useAuthReturnTo } from "./auth-return";
 import { acceptInvitationAndEnter } from "./invitations";
 import type { InvitationSetup } from "./invitations";
 export { AvatarUpload } from "./avatar-upload";
@@ -188,8 +190,9 @@ export function useAllAuth() {
 }
 
 /** Request recovery using the application's own email callback route. */
-export function ForgotPassword({ className = "", style, resetPasswordUrl = "/reset-password", signInUrl, title, subtitle, logo }: AuthAppearance & { resetPasswordUrl?: string }) {
-	const { client, signInUrl: configuredSignIn, branding, publicBranding } = useAllAuth();
+export function ForgotPassword({ className = "", style, resetPasswordUrl = "/reset-password", signInUrl, afterSignInUrl: target, title, subtitle, logo }: AuthAppearance & { resetPasswordUrl?: string }) {
+	const { client, signInUrl: configuredSignIn, afterSignInUrl, basePath, branding, publicBranding } = useAllAuth();
+	const { intent } = useAuthReturnTo(target, afterSignInUrl, basePath);
 	const id = useId();
 	const [email, setEmail] = useState("");
 	const [busy, setBusy] = useState(false);
@@ -198,7 +201,7 @@ export function ForgotPassword({ className = "", style, resetPasswordUrl = "/res
 	const submit = async (event: FormEvent) => {
 		event.preventDefault(); setBusy(true); setError(""); setMessage("");
 		try {
-			const result = await client.requestPasswordReset({ email: email.trim(), redirectTo: appCallback(resetPasswordUrl, window.location.origin) });
+			const result = await client.requestPasswordReset({ email: email.trim(), redirectTo: appCallback(withAuthReturnTo(resetPasswordUrl, intent), window.location.origin) });
 			if (result.error) throw result.error;
 			setMessage("If this account supports password recovery, check your inbox for a reset link.");
 		} catch (cause) { setError(authError(cause)); } finally { setBusy(false); }
@@ -214,14 +217,15 @@ export function ForgotPassword({ className = "", style, resetPasswordUrl = "/res
 					<button type="submit" className="allauth-primary" disabled={busy}>{busy ? "Requesting…" : "Send reset link"}<ArrowRight size={16} aria-hidden="true" /></button>
 				</form>
 			</div>
-			<AuthFooter><p><a href={appPath(signInUrl ?? configuredSignIn)}>Back to sign in</a></p></AuthFooter>
+			<AuthFooter><p><a href={withAuthReturnTo(signInUrl ?? configuredSignIn, intent)}>Back to sign in</a></p></AuthFooter>
 		</section>
 	);
 }
 
 /** Consume the native reset token supplied by the mailed callback. */
-export function ResetPassword({ className = "", style, token, signInUrl, title, subtitle, logo }: AuthAppearance & { token?: string }) {
-	const { client, signInUrl: configuredSignIn, branding, publicBranding } = useAllAuth();
+export function ResetPassword({ className = "", style, token, signInUrl, afterSignInUrl: target, title, subtitle, logo }: AuthAppearance & { token?: string }) {
+	const { client, signInUrl: configuredSignIn, afterSignInUrl, basePath, branding, publicBranding } = useAllAuth();
+	const { intent } = useAuthReturnTo(target, afterSignInUrl, basePath);
 	const id = useId();
 	const [password, setPassword] = useState("");
 	const [confirmation, setConfirmation] = useState("");
@@ -249,7 +253,7 @@ export function ResetPassword({ className = "", style, token, signInUrl, title, 
 					<button type="submit" className="allauth-primary" disabled={busy}>{busy ? "Saving…" : "Change password"}<ArrowRight size={16} aria-hidden="true" /></button>
 				</form>}
 			</div>
-			<AuthFooter><p><a href={appPath(signInUrl ?? configuredSignIn)}>Back to sign in</a></p></AuthFooter>
+			<AuthFooter><p><a href={withAuthReturnTo(signInUrl ?? configuredSignIn, intent)}>Back to sign in</a></p></AuthFooter>
 		</section>
 	);
 }
@@ -483,7 +487,7 @@ function TwoFactorChallenge({ afterSignInUrl, logo }: { afterSignInUrl: string; 
 export function SignIn({ className = "", style, afterSignInUrl: target, signUpUrl, forgotPasswordUrl, title, subtitle, logo }: AuthAppearance) {
 	const context = useAllAuth();
 	const { client, capabilities, challenge, branding, publicBranding } = context;
-	const targetPath = appPath(target ?? context.afterSignInUrl);
+	const { targetPath, intent } = useAuthReturnTo(target, context.afterSignInUrl, context.basePath);
 	const id = useId();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -541,7 +545,7 @@ export function SignIn({ className = "", style, afterSignInUrl: target, signUpUr
 								<div className="allauth-email-summary"><span>{email}</span><button type="button" className="allauth-back-button" disabled={busy} onClick={() => { setPasswordStep(false); setPassword(""); setError(""); }}><ChevronLeft size={16} aria-hidden="true" />Change email</button></div>
 								<input type="hidden" name="username" autoComplete="username" value={email} />
 								<PasswordField id={`${id}-password`} value={password} onChange={setPassword} autoComplete="current-password" disabled={busy} autoFocus />
-								{forgotPasswordUrl && <a className="allauth-forgot-password" href={appPath(forgotPasswordUrl)}>Forgot your password?</a>}
+								{forgotPasswordUrl && <a className="allauth-forgot-password" href={withAuthReturnTo(forgotPasswordUrl, intent)}>Forgot your password?</a>}
 							</> : <Field label="Email address" id={`${id}-email`}>
 								<input id={`${id}-email`} name="username" type="email" placeholder="Enter your email address" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} disabled={busy} />
 							</Field>}
@@ -550,7 +554,7 @@ export function SignIn({ className = "", style, afterSignInUrl: target, signUpUr
 						{!capabilities.emailPassword && !capabilities.google && <Notice message="No sign-in methods are enabled for this app." />}
 					</>}
 				</div>
-				<AuthFooter>{signUpUrl && <p>Don’t have an account? <a href={appPath(signUpUrl)}>Sign up</a></p>}</AuthFooter>
+				<AuthFooter>{signUpUrl && <p>Don’t have an account? <a href={withAuthReturnTo(signUpUrl, intent)}>Sign up</a></p>}</AuthFooter>
 			</>}
 		</section>
 	);
@@ -560,7 +564,7 @@ export function SignIn({ className = "", style, afterSignInUrl: target, signUpUr
 export function SignUp({ className = "", style, afterSignUpUrl: target, signInUrl: signInPath, title, subtitle, logo }: AuthAppearance) {
 	const context = useAllAuth();
 	const { client, capabilities, branding, publicBranding } = context;
-	const targetPath = appPath(target ?? context.afterSignUpUrl);
+	const { targetPath, intent } = useAuthReturnTo(target, context.afterSignUpUrl, context.basePath);
 	const id = useId();
 	const [firstName, setFirstName] = useState("");
 	const [lastName, setLastName] = useState("");
@@ -627,7 +631,7 @@ export function SignUp({ className = "", style, afterSignUpUrl: target, signInUr
 					{!capabilities.emailPassword && !capabilities.google && <Notice message="Account creation is not enabled for this app." />}
 				</>}
 			</div>
-			<AuthFooter><p>Already have an account? <a href={appPath(signInPath ?? context.signInUrl)}>Sign in</a></p></AuthFooter>
+			<AuthFooter><p>Already have an account? <a href={withAuthReturnTo(signInPath ?? context.signInUrl, intent)}>Sign in</a></p></AuthFooter>
 		</section>
 	);
 }
