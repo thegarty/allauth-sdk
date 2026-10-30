@@ -188,7 +188,7 @@
 .allauth-passkey-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; }
 .allauth .allauth-sessions > .allauth-row > button { min-height: 34px; padding: .375rem .625rem; font-size: .75rem; }
 .allauth-device-list { display: flex; flex-direction: column; gap: .75rem; margin: 0; padding: 0; list-style: none; }
-.allauth-device-list > li { padding: 1rem; border: 1px solid var(--allauth-border); border-radius: .6rem; }
+.allauth .allauth-device-list > li { padding: 1rem; border: 1px solid var(--allauth-border); border-radius: .6rem; }
 .allauth-device-identity { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
 .allauth-device-identity > div { min-width: 0; }
 .allauth-device-identity strong { display: block; font-size: .8125rem; font-weight: 550; }
