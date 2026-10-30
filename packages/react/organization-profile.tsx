@@ -17,12 +17,20 @@ const permissionChecks = {
 	readRoles: { ac: ["read"] }, createRole: { ac: ["create"] }, updateRole: { ac: ["update"] }, deleteRole: { ac: ["delete"] },
 } satisfies Record<string, Parameters<AllAuthClient["organization"]["hasPermission"]>[0]["permissions"]>;
 type Permissions = Record<keyof typeof permissionChecks, boolean>;
+const combinedPermissions = Object.values(permissionChecks).reduce<Record<string, string[]>>((combined, permissions) => {
+	for (const [resource, actions] of Object.entries(permissions)) combined[resource] = [...new Set([...(combined[resource] ?? []), ...actions])];
+	return combined;
+}, {});
 async function readPermissions(client: AllAuthClient, organizationId: string): Promise<Permissions> {
-	const entries = await Promise.all(Object.entries(permissionChecks).map(async ([key, permissions]) => {
+	const check = async (permissions: Record<string, string[]>) => {
 		const result = await client.organization.hasPermission({ organizationId, permissions });
 		if (result.error || typeof result.data?.success !== "boolean") throw new Error("Your organisation permissions could not be verified. Please try again.");
-		return [key, result.data.success];
-	}));
+		return result.data.success;
+	};
+	// Native permission checks require every requested action. A positive combined
+	// result proves each control; a denial still needs the individual grants.
+	if (await check(combinedPermissions)) return Object.fromEntries(Object.keys(permissionChecks).map((key) => [key, true])) as Permissions;
+	const entries = await Promise.all(Object.entries(permissionChecks).map(async ([key, permissions]) => [key, await check(permissions)]));
 	return Object.fromEntries(entries) as Permissions;
 }
 

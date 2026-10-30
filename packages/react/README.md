@@ -1,8 +1,8 @@
-# AllAuth React SDK 1.4.2
+# AllAuth React SDK 1.4.3
 
 Previous verified published SDK: **1.4.1**, [download](https://allauth.co/sdk/allauth-react-1.4.1.tgz).
 SHA-256: `4e473030ceebebd3273cb200d374587f9478ccc8bafd1bf0c07845a54b10701d`.
-The default setup SDK is **1.4.2** and includes automatic Google, Apple and Microsoft sign-in, signup, organization, connected-support and environment-specific provider improvements. Publish its versioned archive alongside the matching service changes. Previously published archives are immutable.
+The default setup SDK is **1.4.3** and includes automatic Google, Apple and Microsoft sign-in, signup, organization, connected-support and environment-specific provider improvements. Publish its versioned archive alongside the matching service changes. Previously published archives are immutable.
 
 SDK 1.4.2 refines the native account dialog and preserves profile editing after a successful save. Account actions continue to use native AllAuth sessions and the selected environment's policy.
 `UserButton variant="avatar" managementMode="modal"` accepts an optional async `onProfileUpdated` callback after the native profile has been saved and the session refreshed. Use this callback to synchronize the application's own member profile. The SDK owns the dialog, forms, security actions and responsive layout.
@@ -171,3 +171,5 @@ signature verification remains required.
 The Next.js proxy supports Apple's exact HTTPS `form_post` callback while preserving signed OAuth state and all other POST origin checks. Deploy matching server and SDK changes together. See `docs/content/docs/integrations/allauth-tenant-apple.mdx` for the server-only environment map, HTTPS return URLs, private-relay continuity and mail prerequisites.
 
 Owned-photo lifecycle availability is a separate optional boolean, `profileImageOwnershipAndDeletion` (false when absent). Native integrations that require owner-bound draft erasure must require both this flag and `profileImageUpload`. Legacy branding-backed upload availability alone does not establish user erasure. See the owning-service [source and rollout contract](../../../docs/content/docs/integrations/allauth-owned-profile-photos.mdx); no new provider configuration is activated by this SDK field.
+
+SDK 1.4.3 prevents read-only organisation requests from refreshing active organisation data and combines fully granted profile permissions into one request. Run `pnpm --dir apps/auth run sdk:pack` to package a release; the real-client request-budget check must pass before packaging and every service build verifies the current archive matches its SDK source. Previously published archives stay immutable.

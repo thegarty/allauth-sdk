@@ -80,6 +80,9 @@ export function createAllAuthProxy(options: AllAuthProxyOptions) {
 		target.search = canonicalProxySearch(target.searchParams);
 		const headers = new Headers();
 		for (const name of ["content-type", "user-agent", "accept"]) { const value = request.headers.get(name); if (value) headers.set(name, value); }
+		const sdkVersion = request.headers.get("x-allauth-sdk-version");
+		// Advisory installation metadata never grants authentication or permission.
+		if (sdkVersion && /^\d{1,5}\.\d{1,5}\.\d{1,5}(?:-[A-Za-z0-9.-]{1,40})?$/.test(sdkVersion)) headers.set("x-allauth-sdk-version", sdkVersion);
 		headers.set("origin", app.origin);
 		const cookies = (selectedCookies ?? request.headers.get("cookie") ?? "").split(";").map((value) => value.trim()).filter((value) => value.split("=", 1)[0]?.replace(/^__Secure-/, "").startsWith(prefix));
 		headers.set("cookie", cookies.map((cookie) => app.protocol === "http:" && remote.protocol === "https:" && !cookie.startsWith("__Secure-") ? `__Secure-${cookie}` : cookie).join("; "));
