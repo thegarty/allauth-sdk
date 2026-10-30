@@ -10,16 +10,19 @@ export function safeAuthReturnTo(value: unknown, basePath = "/api/allauth"): str
 	if (typeof value !== "string" || !value || value.length > 2048) return;
 	try {
 		const path = appPath(value);
-		if (path.length > 2048) return;
+		if (path.length > 2048 || !path.startsWith("/") || path.startsWith("//")) return;
+		const target = new URL(path, localOrigin);
+		if (target.origin !== localOrigin) return;
 		let inspect = value;
 		for (let depth = 0; depth < 4; depth++) {
 			if (/[\\\u0000-\u001f\u007f]/.test(inspect)) return;
-			let decoded: string; try { decoded = decodeURIComponent(inspect); } catch { break; }
+			let decoded: string;
+			try { decoded = decodeURIComponent(inspect); } catch { break; }
 			if (decoded === inspect) break;
 			inspect = decoded;
 		}
 		if (/[\\\u0000-\u001f\u007f]/.test(inspect)) return;
-		let pathname = new URL(path, localOrigin).pathname;
+		let pathname = target.pathname;
 		for (let depth = 0; depth < 4; depth++) {
 			const decoded = decodeURIComponent(pathname);
 			if (decoded === pathname) break;
@@ -36,14 +39,17 @@ export function safeAuthReturnTo(value: unknown, basePath = "/api/allauth"): str
 	} catch { return; }
 }
 
-/** Explicit component destinations retain precedence; invalid query destinations use the configured fallback. */
+/** Explicit component destinations take precedence; invalid queries use the configured fallback. */
 export function resolveAuthReturnTo(explicit: string | undefined, query: unknown, fallback: string, basePath = "/api/allauth"): { targetPath: string; intent?: string } {
-	if (explicit != null) { const targetPath = appPath(explicit); return { targetPath, intent: targetPath }; }
+	if (explicit != null) {
+		const targetPath = appPath(explicit);
+		return { targetPath, intent: targetPath };
+	}
 	const intent = safeAuthReturnTo(query, basePath);
 	return { targetPath: intent ?? appPath(fallback), ...(intent ? { intent } : {}) };
 }
 
-/** Carry an active authentication destination through a local link, preserving other query fields and its hash. */
+/** Carry an already checked destination through a local link, preserving other query fields and its hash. */
 export function withAuthReturnTo(path: string, intent?: string): string {
 	const local = appPath(path);
 	if (!intent) return local;
@@ -52,10 +58,10 @@ export function withAuthReturnTo(path: string, intent?: string): string {
 	return url.pathname + url.search + url.hash;
 }
 
-/** Read browser query state after hydration so server-rendered and initial client markup agree. */
+/** Read browser return intent after hydration, without storing it or changing the initial server markup. */
 export function useAuthReturnTo(explicit: string | undefined, fallback: string, basePath = "/api/allauth") {
 	const [query, setQuery] = useState<string | null>(null);
-	// Routers can reuse the same form component after pushState without firing popstate.
+	// Routers can reuse the form after pushState without firing popstate.
 	useEffect(() => { setQuery(browserReturnQuery()); });
 	useEffect(() => {
 		const read = () => setQuery(browserReturnQuery());

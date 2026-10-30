@@ -46,6 +46,10 @@ export type AllAuthCapabilities = {
 	google: boolean;
 	organizations: boolean;
 	twoFactor: boolean;
+	/** False when the environment disallows registration; omitted by older servers. */
+	signUpEnabled?: boolean;
+	/** Whether password signup must wait for email verification; older servers default to true. */
+	emailVerificationRequired?: boolean;
 	/** True only when the native server has profile image storage configured. */
 	profileImageUpload?: boolean;
 };
@@ -554,17 +558,24 @@ export function SignIn({ className = "", style, afterSignInUrl: target, signUpUr
 						{!capabilities.emailPassword && !capabilities.google && <Notice message="No sign-in methods are enabled for this app." />}
 					</>}
 				</div>
-				<AuthFooter>{signUpUrl && <p>Don’t have an account? <a href={withAuthReturnTo(signUpUrl, intent)}>Sign up</a></p>}</AuthFooter>
+				<AuthFooter>{signUpUrl && capabilities?.signUpEnabled !== false && <p>Don’t have an account? <a href={withAuthReturnTo(signUpUrl, intent)}>Sign up</a></p>}</AuthFooter>
 			</>}
 		</section>
 	);
 }
 
-/** Create a real account; visual name fields combine into the native name property. */
-export function SignUp({ className = "", style, afterSignUpUrl: target, signInUrl: signInPath, title, subtitle, logo }: AuthAppearance) {
+/** Signup appearance and optional navigation while email verification is pending. */
+export type SignUpProps = AuthAppearance & {
+	/** Local check-email page used after successful email signup without a session. */
+	checkEmailUrl?: string;
+};
+
+/** Create an account and keep pending email verification separate from the final callback. */
+export function SignUp({ className = "", style, afterSignUpUrl: target, checkEmailUrl, signInUrl: signInPath, title, subtitle, logo }: SignUpProps) {
 	const context = useAllAuth();
 	const { client, capabilities, branding, publicBranding } = context;
 	const { targetPath, intent } = useAuthReturnTo(target, context.afterSignUpUrl, context.basePath);
+	const checkEmailPath = checkEmailUrl === undefined ? undefined : withAuthReturnTo(checkEmailUrl, intent);
 	const id = useId();
 	const [firstName, setFirstName] = useState("");
 	const [lastName, setLastName] = useState("");
@@ -591,7 +602,11 @@ export function SignUp({ className = "", style, afterSignUpUrl: target, signInUr
 			const session = await client.getSession();
 			if (session.error) throw session.error;
 			if (session.data) window.location.assign(targetPath);
-			else setMessage("Account created. Check your email to verify your address, then sign in.");
+			else if (capabilities?.emailVerificationRequired === false) window.location.assign(withAuthReturnTo(signInPath ?? context.signInUrl, intent));
+			else {
+				setMessage("Check your email for a verification link. Open it to verify your address and continue.");
+				if (checkEmailPath) window.location.assign(checkEmailPath);
+			}
 		} catch (error) {
 			setError(authError(error));
 		} finally {
@@ -612,12 +627,12 @@ export function SignUp({ className = "", style, afterSignUpUrl: target, signInUr
 		}
 	}
 	return (
-		<section className={`allauth allauth-card allauth-auth-card ${className}`} style={authCardStyle(style, publicBranding)} aria-label="Create an account">
-			<AuthHeader title={title} subtitle={subtitle} logo={logo} defaultTitle={name ? `Create your ${name} account` : "Create your account"} defaultSubtitle="Welcome! Please fill in the details to get started." />
+		<section className={`allauth allauth-card allauth-auth-card ${className}`} style={authCardStyle(style, publicBranding)} aria-label={message ? "Check your email" : "Create an account"}>
+			<AuthHeader title={message ? "Check your email" : title} subtitle={message ? "Verify your address to continue." : subtitle} logo={logo} defaultTitle={name ? `Create your ${name} account` : "Create your account"} defaultSubtitle="Welcome! Please fill in the details to get started." />
 			<div className="allauth-auth-body">
 				<Notice message={error} error /><Notice message={message} />
-				{!capabilities ? <ConfigState /> : <>
-					{capabilities.google && <GoogleButton busy={busy} connecting={connecting} onClick={() => void google()} />}
+				{!capabilities ? <ConfigState /> : capabilities.signUpEnabled === false ? <Notice message="Account creation is not enabled for this app." /> : <>
+					{capabilities.google && !message && <GoogleButton busy={busy} connecting={connecting} onClick={() => void google()} />}
 					{capabilities.google && capabilities.emailPassword && !message && <div className="allauth-divider"><span>or</span></div>}
 					{capabilities.emailPassword && !message && <form className="allauth-auth-form" onSubmit={submit}>
 						<div className="allauth-name-grid">
@@ -625,13 +640,13 @@ export function SignUp({ className = "", style, afterSignUpUrl: target, signInUr
 							<Field label="Last name (optional)" id={`${id}-last-name`}><input id={`${id}-last-name`} name="lastName" placeholder="Last name" autoComplete="family-name" maxLength={200} value={lastName} onChange={(event) => setLastName(event.target.value)} disabled={busy} /></Field>
 						</div>
 						<Field label="Email address" id={`${id}-email`}><input id={`${id}-email`} name="email" type="email" placeholder="Enter your email address" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} disabled={busy} /></Field>
-						<PasswordField id={`${id}-password`} value={password} onChange={setPassword} autoComplete="new-password" minLength={8} maxLength={128} disabled={busy} />
+						<PasswordField id={`${id}-password`} value={password} onChange={setPassword} autoComplete="new-password" minLength={12} maxLength={128} disabled={busy} />
 						<button type="submit" className="allauth-primary" disabled={busy}>{busy ? "Creating account…" : "Continue"}<ArrowRight size={16} aria-hidden="true" /></button>
 					</form>}
 					{!capabilities.emailPassword && !capabilities.google && <Notice message="Account creation is not enabled for this app." />}
 				</>}
 			</div>
-			<AuthFooter><p>Already have an account? <a href={withAuthReturnTo(signInPath ?? context.signInUrl, intent)}>Sign in</a></p></AuthFooter>
+			<AuthFooter><p>{message ? "Already verified?" : "Already have an account?"} <a href={withAuthReturnTo(signInPath ?? context.signInUrl, intent)}>Sign in</a></p></AuthFooter>
 		</section>
 	);
 }

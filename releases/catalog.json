@@ -4,7 +4,7 @@
   "reconstructedHistory": true,
   "importedAt": "2026-10-30T01:38:34.868686+00:00",
   "sourceArchiveCatalog": "https://allauth.co/sdk/integrity.json",
-  "latestVersion": "1.3.4",
+  "latestVersion": "1.3.5",
   "releases": [
     {
       "version": "1.1.0",
@@ -1218,6 +1218,152 @@
           "path": "react.tsx",
           "sha256": "666ffcf14cb35462ef81927bb718b6809ec68965e27d129418b98ff754665049",
           "bytes": 59976
+        },
+        {
+          "path": "styles.css",
+          "sha256": "c9ed62be7195e690dc7ceb5f5f5f68e530d7d9e42f4f5cd3eb2f2a9202caa3e8",
+          "bytes": 12601
+        },
+        {
+          "path": "ui.tsx",
+          "sha256": "d97dcbf3cd4813d31526e6ae3ff6d51bcc5d7ca542441005890d9e55aa9a83a8",
+          "bytes": 2870
+        }
+      ]
+    },
+    {
+      "version": "1.3.5",
+      "title": "AllAuth React SDK 1.3.5: signup policy and pending-email handoff",
+      "summary": "Adds optional signup-policy capabilities and a local pending-email destination while preserving checked authentication return paths.",
+      "notes": [
+        "Uses optional signUpEnabled and emailVerificationRequired capabilities to adapt native signup to the selected environment.",
+        "Adds SignUp.checkEmailUrl for a local pending-verification page while preserving the final verification callback and checked return intent.",
+        "Extends checked return handling through native authentication and recovery links.",
+        "The archived README labels this a working candidate. These notes describe its retained source rather than claim an unrecorded production rollout."
+      ],
+      "publishedAt": null,
+      "dateConfidence": "unknown",
+      "compatibility": "historical",
+      "upgradeUrl": "https://allauth.co/sdk/quickstart",
+      "changelogUrl": "https://allauth.co/releases/sdk-1-3-5",
+      "downloadUrl": "https://allauth.co/sdk/allauth-react-1.3.5.tgz",
+      "sha256": "0c52ada46541df38650ad2265c415035ba2af6b0f3a8f4c27c5f633a21735afe",
+      "sourceUrl": "https://github.com/thegarty/allauth-sdk/tree/v1.3.5/packages/react",
+      "provenance": [
+        {
+          "kind": "archive-diff",
+          "details": "Reconstructed from the immutable 1.3.4 and 1.3.5 archives. The original publication date was not retained; archive file timestamps are not treated as release dates.",
+          "files": [
+            "README.md",
+            "react.tsx",
+            "auth-return.ts",
+            "branding.ts",
+            "dialog.tsx"
+          ]
+        }
+      ],
+      "filename": "allauth-react-1.3.5.tgz",
+      "archivePath": "releases/archives/allauth-react-1.3.5.tgz",
+      "checksumPath": "releases/checksums/allauth-react-1.3.5.tgz.sha256",
+      "tag": "v1.3.5",
+      "githubReleaseUrl": "https://github.com/thegarty/allauth-sdk/releases/tag/v1.3.5",
+      "packagePrivate": true,
+      "sdkLicense": null,
+      "sourceFiles": [
+        {
+          "path": "BETTER_AUTH_UI.md",
+          "sha256": "861799788e499b3b8115e0885192ea84126c5fe4f1a42e3b45e882aaa1ea00a6",
+          "bytes": 4823
+        },
+        {
+          "path": "README.md",
+          "sha256": "4b1849b705ca5e0370dc33a95a22d2946b31a37d9f311c30aed8243d3c759ea4",
+          "bytes": 5705
+        },
+        {
+          "path": "account-settings.tsx",
+          "sha256": "edcfa96b5e0a0f7cf3122e254a9d0147a0727624851176772be1e1d3b19cffdb",
+          "bytes": 10943
+        },
+        {
+          "path": "allauth-wordmark.tsx",
+          "sha256": "33a358d83663d9fe9cd5da7789302b0b5005e633d7cdbacad07a595b8068a3cf",
+          "bytes": 2445
+        },
+        {
+          "path": "auth-return.ts",
+          "sha256": "11fb99ab4dfad4988e3dbdcf09a7c1216cd72383ebda6760a175691515a73084",
+          "bytes": 3487
+        },
+        {
+          "path": "avatar-upload.tsx",
+          "sha256": "b2101bee74c59dd5db6c66321633fd94bd14c3f9e42662b387abd4854a13b58e",
+          "bytes": 6638
+        },
+        {
+          "path": "branding.ts",
+          "sha256": "cbea6c9ab7a182d057edf42ed6213e5d685275c1a4a803592d5a304470994c05",
+          "bytes": 5753
+        },
+        {
+          "path": "client.ts",
+          "sha256": "0d37b13d3ca7bf0584dc7c2c4fd700dfb9be54a7d46c33d221ba7959be125f58",
+          "bytes": 1750
+        },
+        {
+          "path": "dialog.tsx",
+          "sha256": "b8899da462612f9c41c7edc729219cde835eb9452530a72cfadf86cb931d5ddc",
+          "bytes": 4519
+        },
+        {
+          "path": "google-icon.ts",
+          "sha256": "da34e77b4cfecb5fbeaabb8dbb714ca902d2ea48ff6e12df322d086dbda7e946",
+          "bytes": 45114
+        },
+        {
+          "path": "header.css",
+          "sha256": "abd3db9e61bda5eb067a01060a009d1777132f38cafb1b79b72e9193fbd9bcad",
+          "bytes": 17511
+        },
+        {
+          "path": "header.tsx",
+          "sha256": "46d1979e4c23967df7b4090b3959e8a848c3c1c034a6820e138cc54273ded5dd",
+          "bytes": 13525
+        },
+        {
+          "path": "helpers.ts",
+          "sha256": "20d1ff65bb3a08c2b8f87b30e5b7a4caffc1451fbd1022fd285f1be31de93a50",
+          "bytes": 3215
+        },
+        {
+          "path": "invitations.ts",
+          "sha256": "f267179803e60332aac990a7410fc2f60b3c39a2ab236dca1d55444e9e756fad",
+          "bytes": 3957
+        },
+        {
+          "path": "next.ts",
+          "sha256": "dc97fdede4493c9ee158d49ab6cf30ac3e9d8959b95ad8fe7382cc01c6efed57",
+          "bytes": 8388
+        },
+        {
+          "path": "organization-profile.tsx",
+          "sha256": "d5ba87e06ff5632c47816b74240e0f75f6620a9a1f8223472eeae0fbb3c496d1",
+          "bytes": 22961
+        },
+        {
+          "path": "package.json",
+          "sha256": "14d92cc1d2e5365dde7655519f3c4e3650bdfddcb51061709f45ef7a23a7ef23",
+          "bytes": 1300
+        },
+        {
+          "path": "passkey.ts",
+          "sha256": "025c9c047683300457a0e453e476d2cd3424521ccd7208533d62162cef2b05c4",
+          "bytes": 4435
+        },
+        {
+          "path": "react.tsx",
+          "sha256": "6202478505821ba4cd175e00f9073d05c20a8e520e9dca777f52434c567312e2",
+          "bytes": 61138
         },
         {
           "path": "styles.css",

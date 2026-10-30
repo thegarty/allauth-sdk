@@ -36,7 +36,11 @@ export function Dialog({ open, onClose, title, children, sidebar, className = ""
 		if (!open || !mounted) return;
 		const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 		if (locks++ === 0) { previousOverflow = document.body.style.overflow; document.body.style.overflow = "hidden"; }
-		const timer = window.setTimeout(() => { (panel.current ? visibleControls(panel.current)[0] ?? panel.current : null)?.focus(); }, 0);
+		const timer = window.setTimeout(() => {
+			const current = panel.current;
+			if (!current || current.contains(document.activeElement)) return;
+			(visibleControls(current)[0] ?? current).focus();
+		}, 0);
 		const keydown = (event: KeyboardEvent) => {
 			if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close.current(); return; }
 			if (event.key !== "Tab" || !panel.current) return;
