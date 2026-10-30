@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "package": "@allauth/react",
+  "allowedPackagedFiles": [
+    "BETTER_AUTH_UI.md",
+    "README.md",
+    "account-settings.tsx",
+    "allauth-wordmark.tsx",
+    "auth-return.ts",
+    "avatar-upload.tsx",
+    "branding.ts",
+    "client.ts",
+    "dialog.tsx",
+    "google-icon.ts",
+    "header.css",
+    "header.tsx",
+    "helpers.ts",
+    "invitations.ts",
+    "next.ts",
+    "organization-profile.tsx",
+    "package.json",
+    "passkey.ts",
+    "password-policy.ts",
+    "react.tsx",
+    "styles.css",
+    "support-banner.tsx",
+    "support-server.ts",
+    "ui.tsx"
+  ]
+}
