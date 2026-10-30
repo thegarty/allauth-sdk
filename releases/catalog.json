@@ -4,7 +4,7 @@
   "reconstructedHistory": true,
   "importedAt": "2026-10-30T01:38:34.868686+00:00",
   "sourceArchiveCatalog": "https://allauth.co/sdk/integrity.json",
-  "latestVersion": "1.4.1",
+  "latestVersion": "1.4.2",
   "releases": [
     {
       "version": "1.1.0",
@@ -1678,6 +1678,166 @@
           "path": "react.tsx",
           "sha256": "42c397533c0b38340e263537db7a10a70d71ae6b0b99cae7d34d5060cb7ff5ff",
           "bytes": 66016
+        },
+        {
+          "path": "styles.css",
+          "sha256": "b9018f97e82dd72528b85ae7374d2ed550fb99eb8c5788c36aaa6aefe2ffd46f",
+          "bytes": 13658
+        },
+        {
+          "path": "support-banner.tsx",
+          "sha256": "a961cf969de817fcf269a05b54941d27f0ece21b1e76869106d9514611b1f56e",
+          "bytes": 5320
+        },
+        {
+          "path": "support-server.ts",
+          "sha256": "96c478994c63621fca030b44081a68e61223f2151bc4c482cf05c4faed0abf39",
+          "bytes": 15139
+        },
+        {
+          "path": "ui.tsx",
+          "sha256": "908740817955fc395dff0d95d60e8f426b3cf37eb777b6c956caf86287ad3409",
+          "bytes": 5441
+        }
+      ]
+    },
+    {
+      "version": "1.4.2",
+      "title": "AllAuth React SDK 1.4.2: account dialog and profile update callbacks",
+      "summary": "Refines the native account dialog and adds a host callback after a saved profile refresh.",
+      "notes": [
+        "Adds the optional async UserButton.onProfileUpdated callback for synchronizing an application's member profile after the native save and session refresh.",
+        "Refines profile identity, verified-email and connected-account presentation, and retains profile editing after a successful save.",
+        "Adds keyboard navigation between account sections and passes appearance options into the native account modal."
+      ],
+      "publishedAt": null,
+      "dateConfidence": "unknown",
+      "compatibility": "historical",
+      "upgradeUrl": "https://allauth.co/sdk/quickstart",
+      "changelogUrl": "https://allauth.co/releases/sdk-1-4-2",
+      "downloadUrl": "https://allauth.co/sdk/allauth-react-1.4.2.tgz",
+      "sha256": "1869eb5051032b377f967dd58f538e4b31103ef05eb8260c03dc51b1464bb7f6",
+      "sourceUrl": "https://github.com/thegarty/allauth-sdk/tree/v1.4.2/packages/react",
+      "provenance": [
+        {
+          "kind": "archive-diff",
+          "details": "Reconstructed from the immutable 1.4.1 and 1.4.2 archives. The original publication date was not retained; archive file timestamps are not treated as release dates.",
+          "files": [
+            "README.md",
+            "react.tsx",
+            "header.tsx",
+            "dialog.tsx",
+            "header.css"
+          ]
+        }
+      ],
+      "filename": "allauth-react-1.4.2.tgz",
+      "archivePath": "releases/archives/allauth-react-1.4.2.tgz",
+      "checksumPath": "releases/checksums/allauth-react-1.4.2.tgz.sha256",
+      "tag": "v1.4.2",
+      "githubReleaseUrl": "https://github.com/thegarty/allauth-sdk/releases/tag/v1.4.2",
+      "packagePrivate": true,
+      "sdkLicense": null,
+      "sourceFiles": [
+        {
+          "path": "BETTER_AUTH_UI.md",
+          "sha256": "f0adc3cbc86c96f819affc8864ca7cd745927758559b3a0777c8f1f69acda329",
+          "bytes": 5660
+        },
+        {
+          "path": "README.md",
+          "sha256": "b47664d2832e46aa18aac01614a426985e4ab2c421f9a1b1af8ca3d4846ac3bd",
+          "bytes": 12293
+        },
+        {
+          "path": "account-settings.tsx",
+          "sha256": "edcfa96b5e0a0f7cf3122e254a9d0147a0727624851176772be1e1d3b19cffdb",
+          "bytes": 10943
+        },
+        {
+          "path": "allauth-wordmark.tsx",
+          "sha256": "33a358d83663d9fe9cd5da7789302b0b5005e633d7cdbacad07a595b8068a3cf",
+          "bytes": 2445
+        },
+        {
+          "path": "auth-return.ts",
+          "sha256": "11fb99ab4dfad4988e3dbdcf09a7c1216cd72383ebda6760a175691515a73084",
+          "bytes": 3487
+        },
+        {
+          "path": "avatar-upload.tsx",
+          "sha256": "b2101bee74c59dd5db6c66321633fd94bd14c3f9e42662b387abd4854a13b58e",
+          "bytes": 6638
+        },
+        {
+          "path": "branding.ts",
+          "sha256": "71d0276170b2c121b59ee678fe11935b1ada0cb39eda92dc75ece6dca275ffe7",
+          "bytes": 7547
+        },
+        {
+          "path": "client.ts",
+          "sha256": "2dfcacbc47132c4e47c7ec71ec341720de4658f51ac28e02af59e6e166e003b8",
+          "bytes": 1791
+        },
+        {
+          "path": "dialog.tsx",
+          "sha256": "92b0df2de353f1f4b491f71fc24a624aa007a430fc4776666267c33c6f3cd281",
+          "bytes": 5051
+        },
+        {
+          "path": "google-icon.ts",
+          "sha256": "da34e77b4cfecb5fbeaabb8dbb714ca902d2ea48ff6e12df322d086dbda7e946",
+          "bytes": 45114
+        },
+        {
+          "path": "header.css",
+          "sha256": "7df8e2d284b1174424b58c41a573206d6f89e961732a7eeae9f295753ff64db1",
+          "bytes": 25773
+        },
+        {
+          "path": "header.tsx",
+          "sha256": "9c0319b1183fb9150589f1860c058dd4ea10483811575c1f747f4b4f7b1bd02a",
+          "bytes": 13655
+        },
+        {
+          "path": "helpers.ts",
+          "sha256": "20d1ff65bb3a08c2b8f87b30e5b7a4caffc1451fbd1022fd285f1be31de93a50",
+          "bytes": 3215
+        },
+        {
+          "path": "invitations.ts",
+          "sha256": "f267179803e60332aac990a7410fc2f60b3c39a2ab236dca1d55444e9e756fad",
+          "bytes": 3957
+        },
+        {
+          "path": "next.ts",
+          "sha256": "59fd8fae351bfc7fae3f4f9090aa9a5e932ba1e8c6a0315724f450718a98a58c",
+          "bytes": 12131
+        },
+        {
+          "path": "organization-profile.tsx",
+          "sha256": "1c372a218a8c7e23f247457a17a3c5d996a1fd2a922e8620ffe18a3a5727b445",
+          "bytes": 44664
+        },
+        {
+          "path": "package.json",
+          "sha256": "260a5251eec62ec60e994aaf24899a7e3038d616763dc6481aa3f76d9e964759",
+          "bytes": 1377
+        },
+        {
+          "path": "passkey.ts",
+          "sha256": "025c9c047683300457a0e453e476d2cd3424521ccd7208533d62162cef2b05c4",
+          "bytes": 4435
+        },
+        {
+          "path": "password-policy.ts",
+          "sha256": "b1580c5ea33b3962fb19813d775d02005338517934eb6ca1c3e5739600a6e918",
+          "bytes": 2973
+        },
+        {
+          "path": "react.tsx",
+          "sha256": "de5ab24b35b3acc2b2d14535199b9ca3ad50666288bba4212776bacf717db125",
+          "bytes": 67951
         },
         {
           "path": "styles.css",

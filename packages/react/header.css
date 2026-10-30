@@ -211,6 +211,58 @@
 .allauth-avatar-upload p { color: var(--allauth-muted); font-size: .75rem; line-height: 1.6; }
 .allauth-avatar-advanced { max-width: 100%; }
 .allauth .allauth-avatar-advanced > summary { padding: .5rem 0; color: var(--allauth-muted); font-size: .75rem; font-weight: 500; }
+/* The native account dialog is a shared SDK surface; organization dialogs keep their chrome. */
+.allauth-profile-identity-row { grid-template-columns: minmax(0, 1fr) auto; }
+.allauth-profile-identity > div { display: flex; flex-direction: column; gap: .25rem; min-width: 0; }
+.allauth-profile-label { color: var(--allauth-muted); font-size: .8125rem; font-weight: 450; }
+.allauth-profile-email-row { grid-template-columns: minmax(6rem, .7fr) minmax(0, 1.4fr); }
+.allauth-profile-email-value { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; overflow-wrap: anywhere; }
+.allauth-verified-badge,
+.allauth-connected-status { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: .375rem; padding: .3rem .625rem; border: 0; border-radius: .5rem; background: var(--allauth-success-background, #e6f5ed); color: var(--allauth-success-foreground, #116447); font-size: .75rem; font-weight: 450; line-height: 1.4; white-space: nowrap; }
+.allauth-verified-badge svg,
+.allauth-connected-status svg { flex: none; }
+.allauth-connected-list { gap: 0; }
+.allauth-connected-provider { display: inline-flex; align-items: center; gap: .875rem; min-width: 0; }
+.allauth-provider-icon { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; border: 1px solid var(--allauth-border); border-radius: 50%; background: #fff; color: #17212d; }
+.allauth-provider-icon img { display: block; width: 1.5rem; height: 1.5rem; object-fit: contain; }
+.allauth-provider-apple { border-color: transparent; }
+.allauth-provider-apple img { width: 1.75rem; height: 1.75rem; }
+.allauth-account-dialog-backdrop { --allauth-accent: var(--allauth-modal-accent, #171717); --allauth-selected-background: color-mix(in srgb, var(--allauth-foreground) 8%, var(--allauth-background)); background: #15203059; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.allauth-account-dialog-backdrop .allauth-modal { position: relative; width: min(66.25rem, 100%); height: min(41.25rem, calc(100dvh - 3rem)); border-radius: .875rem; box-shadow: 0 24px 96px #10182833; }
+.allauth-account-dialog-backdrop .allauth-modal-has-sidebar { grid-template-columns: 17.5rem minmax(0, 1fr); }
+.allauth-account-dialog-backdrop .allauth-modal-sidebar { padding: 3rem 2.25rem; background: var(--allauth-background); }
+.allauth-account-dialog-backdrop .allauth-modal-sidebar-content { gap: 1.5rem; }
+.allauth-account-dialog-backdrop .allauth-account-dialog-title { font-size: 1.375rem; font-weight: 650; letter-spacing: -.035em; line-height: 1.35; }
+.allauth-account-dialog-backdrop .allauth-modal-sidebar nav { gap: .375rem; }
+.allauth-account-dialog-backdrop .allauth-modal-sidebar nav button { min-height: 48px; gap: .875rem; padding: .75rem .875rem; border-radius: .625rem; color: var(--allauth-foreground); font-size: .9375rem; font-weight: 450; }
+.allauth-account-dialog-backdrop .allauth-modal-sidebar nav button svg { width: 1.25rem; height: 1.25rem; stroke-width: 1.6; }
+.allauth-account-dialog-backdrop .allauth-modal-sidebar nav button[aria-current=page] { background: var(--allauth-selected-background); color: var(--allauth-foreground); }
+.allauth-account-dialog-backdrop .allauth-modal-sidebar nav button:hover { background: var(--allauth-footer-background); }
+.allauth-account-dialog-backdrop .allauth-modal-main { padding: 3rem; }
+.allauth-account-dialog-backdrop .allauth-profile-embedded > .allauth-stack { gap: 0; }
+.allauth-account-dialog-backdrop .allauth-profile-embedded > .allauth-stack > h2 { padding: 0 2rem 1.25rem 0; border-bottom: 1px solid var(--allauth-border); font-size: 1.75rem; font-weight: 550; letter-spacing: -.04em; line-height: 1.3; }
+.allauth-account-dialog-backdrop .allauth-profile-row { padding: 1.5rem 0; gap: 1rem; font-size: 1rem; }
+.allauth-account-dialog-backdrop .allauth-profile-identity-row { grid-template-columns: minmax(0, 1fr) auto; }
+.allauth-account-dialog-backdrop .allauth-profile-identity { gap: 1.25rem; }
+.allauth-account-dialog-backdrop .allauth-profile-identity .allauth-avatar { width: 5rem; height: 5rem; font-size: 1.25rem; }
+.allauth-account-dialog-backdrop .allauth-profile-identity strong { font-size: 1.125rem; font-weight: 500; line-height: 1.4; }
+.allauth-account-dialog-backdrop .allauth-profile-label { color: var(--allauth-muted); font-size: .875rem; font-weight: 450; }
+.allauth-account-dialog-backdrop .allauth-profile-email-row { display: flex; flex-direction: column; align-items: flex-start; gap: .5rem; }
+.allauth-account-dialog-backdrop .allauth-profile-email-value { gap: .5rem .875rem; font-size: 1rem; }
+.allauth-account-dialog-backdrop .allauth-profile-summary .allauth-verified-badge { padding: .375rem .625rem; font-size: .75rem; }
+.allauth-account-dialog-backdrop button.allauth-text-button { min-height: 42px; padding: .625rem .875rem; border: 1px solid var(--allauth-border); border-radius: .5rem; background: var(--allauth-background); color: var(--allauth-foreground); font-size: .8125rem; font-weight: 500; text-align: center; white-space: nowrap; }
+.allauth-account-dialog-backdrop button.allauth-text-button:hover { background: var(--allauth-footer-background); }
+.allauth-account-dialog-backdrop .allauth-connected-accounts { margin-top: 0; padding-top: 1.5rem; border: 0; gap: .625rem; }
+.allauth-account-dialog-backdrop .allauth-connected-accounts h3 { font-size: .9375rem; font-weight: 500; }
+.allauth-account-dialog-backdrop .allauth-connected-list > li { min-height: 68px; padding: .75rem 0; font-size: .875rem; }
+.allauth-account-dialog-backdrop .allauth-connected-status { padding: .375rem .625rem; }
+.allauth-account-dialog-backdrop .allauth-profile-edit { margin-top: 1.25rem; padding: 1.25rem; }
+.allauth-account-dialog-backdrop .allauth-profile-embedded > .allauth-stack > .allauth-security-detail { margin-top: 1.25rem; }
+.allauth-account-dialog-backdrop .allauth-profile-embedded > .allauth-stack > .allauth-stack { margin-top: 1rem; }
+.allauth-account-dialog-backdrop .allauth-notice,
+.allauth-account-dialog-backdrop .allauth-error { margin-top: 1rem; }
+.allauth-account-dialog-backdrop button.allauth-account-dialog-close { position: absolute; top: .875rem; right: .875rem; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: .5rem; background: transparent; color: var(--allauth-muted); }
+.allauth-account-dialog-backdrop button.allauth-account-dialog-close:hover { background: var(--allauth-footer-background); color: var(--allauth-foreground); }
 @media (max-width: 680px) {
   .allauth-modal-backdrop { padding: .75rem; }
   .allauth-modal,
@@ -238,4 +290,20 @@
   .allauth-account-panel { padding: 1.25rem 1rem; }
   .allauth-avatar-upload { flex-wrap: wrap; }
   .allauth-avatar-upload-actions { flex-basis: 12rem; }
+  .allauth-account-dialog-backdrop .allauth-modal { height: calc(100dvh - 1.5rem); border-radius: .75rem; }
+  .allauth-account-dialog-backdrop .allauth-modal-has-sidebar { grid-template-columns: minmax(0, 1fr); }
+  .allauth-account-dialog-backdrop .allauth-modal-sidebar { padding: 1.25rem 1.25rem .875rem; }
+  .allauth-account-dialog-backdrop .allauth-modal-sidebar-content { gap: 1rem; }
+  .allauth-account-dialog-backdrop .allauth-account-dialog-title { padding-right: 2.75rem; font-size: 1.25rem; }
+  .allauth-account-dialog-backdrop .allauth-modal-sidebar nav button { justify-content: center; min-height: 44px; padding: .625rem .75rem; font-size: .875rem; }
+  .allauth-account-dialog-backdrop .allauth-modal-main { padding: 1.5rem 1.25rem 2rem; }
+  .allauth-account-dialog-backdrop .allauth-profile-embedded > .allauth-stack > h2 { padding-right: 0; font-size: 1.5rem; }
+  .allauth-account-dialog-backdrop .allauth-profile-identity-row { display: flex; flex-wrap: wrap; }
+  .allauth-account-dialog-backdrop .allauth-profile-identity { flex: 1 1 11rem; gap: .875rem; }
+  .allauth-account-dialog-backdrop .allauth-profile-identity .allauth-avatar { width: 3.5rem; height: 3.5rem; }
+  .allauth-account-dialog-backdrop .allauth-profile-identity strong { font-size: 1.0625rem; }
+  .allauth-account-dialog-backdrop .allauth-profile-row { padding: 1.25rem 0; }
+  .allauth-account-dialog-backdrop .allauth-connected-provider { gap: .625rem; }
+  .allauth-account-dialog-backdrop .allauth-connected-status { font-size: .6875rem; }
+  .allauth-account-dialog-backdrop button.allauth-account-dialog-close { top: .75rem; right: .75rem; }
 }

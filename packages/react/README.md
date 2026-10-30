@@ -1,8 +1,11 @@
-# AllAuth React SDK 1.4.1
+# AllAuth React SDK 1.4.2
 
-Latest verified published SDK: **1.3.4**, [download](https://allauth.co/sdk/allauth-react-1.3.4.tgz).
-SHA-256: `ead480cbdcc502e29c78a26bc849845478e7de3bd8a9369b546cbbb3008998a5`.
-The default setup SDK is **1.4.1** and includes automatic Google, Apple and Microsoft sign-in, signup, organization, connected-support and environment-specific provider improvements. Publish its versioned archive alongside the matching service changes. Previously published archives are immutable.
+Previous verified published SDK: **1.4.1**, [download](https://allauth.co/sdk/allauth-react-1.4.1.tgz).
+SHA-256: `4e473030ceebebd3273cb200d374587f9478ccc8bafd1bf0c07845a54b10701d`.
+The default setup SDK is **1.4.2** and includes automatic Google, Apple and Microsoft sign-in, signup, organization, connected-support and environment-specific provider improvements. Publish its versioned archive alongside the matching service changes. Previously published archives are immutable.
+
+SDK 1.4.2 refines the native account dialog and preserves profile editing after a successful save. Account actions continue to use native AllAuth sessions and the selected environment's policy.
+`UserButton variant="avatar" managementMode="modal"` accepts an optional async `onProfileUpdated` callback after the native profile has been saved and the session refreshed. Use this callback to synchronize the application's own member profile. The SDK owns the dialog, forms, security actions and responsive layout.
 
 A portable React SDK backed by the app's same-origin AllAuth proxy. Install the
 versioned tarball plus its declared peers, and import `@allauth/react/styles.css`.

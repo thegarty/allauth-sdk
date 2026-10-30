@@ -10,7 +10,7 @@ import {
 	useState,
 } from "react";
 import type { CSSProperties, FormEvent, ReactNode } from "react";
-import { ArrowRight, ChevronLeft, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Check, ChevronLeft, Eye, EyeOff, KeyRound, LockKeyhole, UserRound } from "lucide-react";
 import { googleIcon } from "./google-icon";
 import { AllAuthWordmark } from "./allauth-wordmark";
 import { brandForeground, brandLinkColor, publicSDKConfiguration } from "./branding";
@@ -705,12 +705,15 @@ export function UserButton({
 	afterSignOutUrl = "/",
 	variant = "default",
 	managementMode = "page",
+	onProfileUpdated,
 }: Appearance & {
 	signInUrl?: string;
 	profileUrl?: string;
 	afterSignOutUrl?: string;
 	variant?: "default" | "avatar";
 	managementMode?: "page" | "modal";
+	/** Refresh the consuming app after a native account profile update completes. */
+	onProfileUpdated?: () => void | Promise<void>;
 }) {
 	const context = useAllAuth();
 	const session = context.client.useSession();
@@ -729,7 +732,7 @@ export function UserButton({
 			setBusy(false);
 		}
 	}
-	if (variant === "avatar" && session.data) return <AvatarUserButton className={className} style={style} managementMode={managementMode} profileUrl={profileUrl} afterSignOutUrl={afterSignOutUrl}/>;
+	if (variant === "avatar" && session.data) return <AvatarUserButton className={className} style={style} managementMode={managementMode} profileUrl={profileUrl} afterSignOutUrl={afterSignOutUrl} onProfileUpdated={onProfileUpdated}/>;
 	return (
 		<div className={`allauth ${className}`} style={style}>
 			{session.isPending ? (
@@ -761,7 +764,7 @@ export function UserButton({
 					</div>
 				</details>
 			)}
-			<UserProfileModal open={profileOpen} onClose={() => setProfileOpen(false)}/>
+			<UserProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} onUpdated={onProfileUpdated} className={className} style={style}/>
 		</div>
 	);
 }
@@ -939,7 +942,13 @@ function ProfileForms({ user, section = "all", onUpdated }: { user: { name: stri
   catch (cause) { setError(authError(cause)); } finally { setBusy(false); }
  }
  return <><Notice message={error} error/><Notice message={message}/>{section !== "security" && <>
-  {section === "profile" && <div className="allauth-profile-summary"><div className="allauth-profile-row"><span>Profile</span><div className="allauth-profile-identity"><Avatar name={user.name || user.email} image={user.image}/><strong>{user.name || user.email}</strong></div><button className="allauth-text-button" type="button" onClick={() => setEditing(value => !value)}>{editing ? "Cancel update" : "Update profile"}</button></div><div className="allauth-profile-row"><span>Email address</span><div>{user.email} <span className="allauth-badge">{user.emailVerified ? "Verified" : "Unverified"}</span></div></div></div>}
+  {(section === "profile" || !editing) && <div className="allauth-profile-summary">
+   <div className="allauth-profile-row allauth-profile-identity-row">
+    <div className="allauth-profile-identity"><Avatar name={user.name || user.email} image={user.image}/><div><span className="allauth-profile-label">Profile</span><strong>{user.name || user.email}</strong></div></div>
+    <button className="allauth-text-button" type="button" onClick={() => setEditing(value => !value)}>{editing ? "Cancel update" : "Update profile"}</button>
+   </div>
+   <div className="allauth-profile-row allauth-profile-email-row"><span className="allauth-profile-label">Email address</span><div className="allauth-profile-email-value">{user.email}<span className={`allauth-badge${user.emailVerified ? " allauth-verified-badge" : ""}`}>{user.emailVerified && <Check size={15} aria-hidden="true"/>}{user.emailVerified ? "Verified" : "Unverified"}</span></div></div>
+  </div>}
   {editing && <form className="allauth-stack allauth-profile-edit" onSubmit={event => { event.preventDefault(); if (image.trim() && !safeAvatar(image.trim())) { setError("Use a public HTTPS avatar URL, or leave it blank."); return; } void run(() => client.updateUser({ name: name.trim(), image: image.trim() || null }), "Profile updated.", true); }}>
    <h3>Update profile</h3><AvatarUpload name={name || user.email} image={image} onChange={value => setImage(value || "")} disabled={busy} onBusyChange={setAvatarBusy}/><Field label="Name" id={`${id}-name`}><input id={`${id}-name`} required maxLength={200} autoComplete="name" value={name} onChange={event => setName(event.target.value)} disabled={busy || avatarBusy}/></Field>
    <details className="allauth-avatar-advanced"><summary>Use an image URL</summary><Field label="Avatar image URL (optional)" id={`${id}-image`}><input id={`${id}-image`} type="url" maxLength={2048} placeholder="https://example.com/photo.jpg" value={image} onChange={event => setImage(event.target.value)} disabled={busy || avatarBusy}/></Field></details>
@@ -959,7 +968,7 @@ function ProfileForms({ user, section = "all", onUpdated }: { user: { name: stri
 function ConnectedAccounts() {
  const { client } = useAllAuth(); const [accounts, setAccounts] = useState<{ id: string; providerId: string }[]>([]); const [loading, setLoading] = useState(true); const [error, setError] = useState("");
  useEffect(() => { let current = true; void client.listAccounts().then(response => { if (!current) return; if (response.error) setError(authError(response.error)); else setAccounts((response.data || []).map(account => ({ id: account.id, providerId: account.providerId }))); }).catch(cause => { if (current) setError(authError(cause)); }).finally(() => { if (current) setLoading(false); }); return () => { current = false; }; }, [client]);
- return <section className="allauth-profile-section"><h3>Connected accounts</h3>{loading ? <Loading>Loading connected accounts…</Loading> : error ? <Notice message={error} error/> : accounts.length ? <ul className="allauth-list">{accounts.map(account => <li key={account.id}><span>{account.providerId === "allauth" ? "AllAuth" : account.providerId === "credential" ? "Password" : account.providerId.charAt(0).toUpperCase() + account.providerId.slice(1)}</span></li>)}</ul> : <p className="allauth-muted">No connected accounts.</p>}</section>;
+ return <section className="allauth-profile-section allauth-connected-accounts"><h3>Connected accounts</h3>{loading ? <Loading>Loading connected accounts…</Loading> : error ? <Notice message={error} error/> : accounts.length ? <ul className="allauth-list allauth-connected-list">{accounts.map(account => <li key={account.id}><span className="allauth-connected-provider"><span className={`allauth-provider-icon${account.providerId === "apple" ? " allauth-provider-apple" : ""}`}>{account.providerId === "google" ? <img src={googleIcon} alt="" width={24} height={24} aria-hidden="true"/> : account.providerId === "apple" ? <img src={appleIcon} alt="" width={24} height={24} aria-hidden="true"/> : <KeyRound size={22} aria-hidden="true"/>}</span><span>{account.providerId === "allauth" ? "AllAuth" : account.providerId === "credential" ? "Password" : account.providerId.charAt(0).toUpperCase() + account.providerId.slice(1)}</span></span><span className="allauth-connected-status"><Check size={15} aria-hidden="true"/>Connected</span></li>)}</ul> : <p className="allauth-muted">No connected accounts.</p>}</section>;
 }
 
 /** Profile, verification and native security controls; defaults retain the full account page. */
@@ -975,9 +984,17 @@ export function UserProfile({ className = "", style, signInUrl, section = "all",
 }
 
 /** Controlled native account modal, suitable for any React host application. */
-export function UserProfileModal({ open, onClose, initialSection = "profile", onUpdated }: { open: boolean; onClose: () => void; initialSection?: "profile" | "security"; onUpdated?: () => void | Promise<void> }) {
+export function UserProfileModal({ open, onClose, initialSection = "profile", onUpdated, className = "", style }: Appearance & { open: boolean; onClose: () => void; initialSection?: "profile" | "security"; onUpdated?: () => void | Promise<void> }) {
  const [section, setSection] = useState(initialSection); useEffect(() => { if (open) setSection(initialSection); }, [open, initialSection]);
- return <Dialog open={open} onClose={onClose} title="Account" sidebar={<><p className="allauth-muted">Manage your account.</p><nav aria-label="Account sections"><button type="button" aria-current={section === "profile" ? "page" : undefined} onClick={() => setSection("profile")}>Profile</button><button type="button" aria-current={section === "security" ? "page" : undefined} onClick={() => setSection("security")}>Security</button></nav></>}><UserProfile section={section} embedded onUpdated={onUpdated}/></Dialog>;
+ const sections = ["profile", "security"] as const;
+ return <Dialog open={open} onClose={onClose} title="Your account" variant="account" className={className} style={style} sidebar={<nav aria-label="Account sections" onKeyDown={event => {
+  if (!["ArrowDown", "ArrowUp", "ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) return;
+  event.preventDefault();
+  const buttons = [...event.currentTarget.querySelectorAll<HTMLButtonElement>("button")];
+  const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+  const next = event.key === "Home" ? 0 : event.key === "End" ? sections.length - 1 : (current + (["ArrowUp", "ArrowLeft"].includes(event.key) ? -1 : 1) + sections.length) % sections.length;
+  setSection(sections[next]); buttons[next]?.focus();
+ }}><button type="button" aria-current={section === "profile" ? "page" : undefined} onClick={() => setSection("profile")}><UserRound size={20} aria-hidden="true"/>Profile</button><button type="button" aria-current={section === "security" ? "page" : undefined} onClick={() => setSection("security")}><LockKeyhole size={20} aria-hidden="true"/>Security</button></nav>}><UserProfile section={section} embedded onUpdated={onUpdated}/></Dialog>;
 }
 
 type Invitation = {
